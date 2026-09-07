@@ -2,6 +2,10 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/trang-chu",
+      "destination": "/index.html"
+    },
+    {
       "source": "/gxn",
       "destination": "/gxn.html"
     },
