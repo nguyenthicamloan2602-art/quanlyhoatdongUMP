@@ -614,7 +614,7 @@
           sessionStorage.setItem('loggedAdmin', JSON.stringify({ role: userRole, name: userName }));
           
           // CHUYỂN HƯỚNG MANG THEO CỜ ADMIN CHUẨN
-          window.location.href = `../gxn/gxn.html?isAdmin=true&role=${encodeURIComponent(userRole)}&name=${encodeURIComponent(userName)}`;
+          window.location.href = `/gxn.html?token=${token}&name=${encodeURIComponent(name)}&lop=${encodeURIComponent(lop)}&khoa=${encodeURIComponent(khoa)}`;
         } else {
           if (statusEl) statusEl.innerText = "";
           alert("Đăng nhập thất bại: " + (res.error || "Tài khoản hoặc mật khẩu không chính xác!"));
