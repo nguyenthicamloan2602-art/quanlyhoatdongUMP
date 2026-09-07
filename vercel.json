@@ -1,4 +1,17 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "rewrites": [
+    {
+      "source": "/gxn",
+      "destination": "/gxn.html"
+    },
+    {
+      "source": "/gcn",
+      "destination": "/gcn.html"
+    },
+    {
+      "source": "/bieumau",
+      "destination": "/bieumau.html"
+    }
+  ]
 }
