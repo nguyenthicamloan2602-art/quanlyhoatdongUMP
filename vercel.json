@@ -1,12 +1,4 @@
 {
-  "cleanUrls": false,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/gxn", "destination": "/gxn/gxn.html" },
-    { "source": "/gxn.html", "destination": "/gxn/gxn.html" },
-    { "source": "/bieumau", "destination": "/bieumau/bieumau.html" },
-    { "source": "/bieumau.html", "destination": "/bieumau/bieumau.html" },
-    { "source": "/clb", "destination": "/clb/bieumau.html" },
-    { "source": "/:path*", "destination": "/:path*" }
-  ]
+  "cleanUrls": true,
+  "trailingSlash": false
 }
