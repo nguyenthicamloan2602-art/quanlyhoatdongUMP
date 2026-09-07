@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>GIẤY XÁC NHẬN (1 CỬA) - ĐẠI HỌC Y DƯỢC TPHCM</title>
+  <title>HỆ THỐNG QUẢN LÝ GIẤY XÁC NHẬN HOẠT ĐỘNG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
     <!-- HEADER -->
     <header class="bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md py-3.5 px-6 flex justify-between items-center shrink-0">
       <div>
-        <h1 class="font-extrabold text-sm md:text-base leading-tight uppercase">HỆ THỐNG CẤP GIẤY XÁC NHẬN TRỰC TUYẾN </h1>
+        <h1 class="font-extrabold text-sm md:text-base leading-tight uppercase">HỆ THỐNG QUẢN LÝ GIẤY XÁC NHẬN HOẠT ĐỘNG</h1>
         <p class="text-xs text-sky-100 uppercase font-medium">ĐOÀN THANH NIÊN - HỘI SINH VIÊN ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p>
       </div>
       <div id="userInfoHeader" class="flex items-center space-x-3">
@@ -119,7 +119,7 @@
                 <!-- KHUNG CẢNH BÁO LỊCH SỬ SỬA ĐỔI MÀU VÀNG (DÀNH CHO QTV KHỞI TẠO TỰ ĐỘNG) -->
                 <div id="qtvAuditWarningBox" class="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 space-y-1.5 shadow-sm max-w-lg mx-auto" style="display: none;">
                   <div class="font-extrabold text-amber-900 text-xs flex items-center gap-1.5 uppercase tracking-wide">
-                    <span>⚠️</span> CẢNH BÁO LỊCH SỬ SỬA ĐỔI NỘI DUNG TỪ CTV
+                    <span>⚠️</span> CẢNH BÁO LỊCH SỬ SỬA ĐỔI NỘI DUNG
                   </div>
                   <div id="qtvAuditLogContent" class="text-xs text-amber-800 font-medium leading-relaxed bg-white/90 p-3 rounded-xl border border-amber-100 font-mono">
                     --
@@ -145,17 +145,17 @@
                   <!-- DÀNH CHO CTV -->
                   <div id="ctvActionGroup" class="w-full flex justify-center" style="display: none;">
                     <button onclick="submitCtvReview()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl text-xs transition shadow-md">
-                      Chuyển QTV
+                      Chuyển Ban Thư ký
                     </button>
                   </div>
 
                   <!-- DÀNH CHO QTV -->
                   <div id="qtvActionGroup" class="w-full grid grid-cols-3 gap-3" style="display: none;">
                     <button onclick="rejectRequest()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-3 rounded-xl text-xs transition shadow-md">
-                      Từ chối GXN
+                      Từ chối
                     </button>
                     <button onclick="returnCtvRequest()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-3 rounded-xl text-xs transition shadow-md">
-                      Trả CTV
+                      Trả hồ sơ CTV
                     </button>
                     <button onclick="approveQtv()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-3 rounded-xl text-xs transition shadow-md">
                       Phê duyệt
@@ -372,7 +372,7 @@
         qtvGroup.style.display = 'none';
         instructionEl.innerHTML = `
           <div>1. Mở file xem xét thể thức.</div>
-          <div>2. Bấm CHUYỂN QTV sau khi kiểm tra xong.</div>
+          <div>2. Bấm Chuyển Ban thư ký sau khi kiểm tra xong.</div>
         `;
       }
     }
@@ -381,7 +381,7 @@
       if (!selectedRequest) return;
       const toast = document.getElementById('adminActionToast');
       toast.className = "text-xs font-semibold text-center text-sky-600 min-h-[16px]";
-      toast.textContent = "⏳ Đang kiểm tra & chuyển cho QTV...";
+      toast.textContent = "⏳ Đang kiểm tra & chuyển cho Ban thư ký...";
 
       fetch(GXN_API_URL, {
         method: "POST",
@@ -397,7 +397,7 @@
       .then(res => {
         if (res.success) {
           toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
-          toast.textContent = "🎉 CTV đã chuyển hồ sơ thành công cho QTV!";
+          toast.textContent = "🎉 Đã chuyển hồ sơ thành công";
           reloadPendingAdmin();
         } else {
           toast.className = "text-xs font-semibold text-center text-rose-600 min-h-[16px]";
@@ -412,7 +412,7 @@
 
       const toast = document.getElementById('adminActionToast');
       toast.className = "text-xs font-semibold text-center text-sky-600 min-h-[16px]";
-      toast.textContent = "⏳ Đang chèn mã QR & xuất file ảnh trả sinh viên...";
+      toast.textContent = "⏳ Đang chèn mã QR & xuất file gửi sinh viên...";
 
       fetch(GXN_API_URL, {
         method: "POST",
@@ -429,7 +429,7 @@
       .then(res => {
         if (res.success) {
           toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
-          toast.textContent = "🎉 Phê duyệt và xuất file ảnh cho SV thành công!";
+          toast.textContent = "🎉 Phê duyệt thành công!";
           reloadPendingAdmin();
         } else {
           toast.className = "text-xs font-semibold text-center text-rose-600 min-h-[16px]";
@@ -440,7 +440,7 @@
 
     function returnCtvRequest() {
       if (!selectedRequest) return;
-      const reason = prompt("Nhập lý do trả CTV yêu cầu sửa lại:");
+      const reason = prompt("Nhập lý do yêu cầu CTV sửa lại:");
       if (!reason) return;
 
       const toast = document.getElementById('adminActionToast');
@@ -616,7 +616,7 @@
               ${(isFinished && item.downloadUrl) ? `
                 <div class="pt-2 border-t border-slate-100 flex justify-end">
                   <a href="${item.downloadUrl}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition shadow-sm">
-                    <span>🖼️</span> Tải Giấy xác nhận (.PNG)
+                    <span>🖼️</span> Tải Giấy xác nhận
                   </a>
                 </div>
               ` : `

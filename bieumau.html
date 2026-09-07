@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>XÁC NHẬN CÂU LẠC BỘ - ĐẠI HỌC Y DƯỢC TPHCM</title>
+  <title>HỆ THỐNG QUẢN LÝ HOẠT ĐỘNG CLB - ĐỘI - NHÓM - TRUNG TÂM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,7 @@
     <!-- HEADER -->
     <header class="bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md py-3.5 px-6 flex justify-between items-center shrink-0">
       <div>
-        <h1 class="font-extrabold text-sm md:text-base leading-tight uppercase">HỆ THỐNG CẤP GIẤY XÁC NHẬN CÂU LẠC BỘ TRỰC TUYẾN</h1>
+        <h1 class="font-extrabold text-sm md:text-base leading-tight uppercase">HỆ THỐNG QUẢN LÝ HOẠT ĐỘNG CLB - ĐỘI - NHÓM - TRUNG TÂM</h1>
         <p class="text-xs text-sky-100 uppercase font-medium">ĐOÀN THANH NIÊN - HỘI SINH VIÊN ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p>
       </div>
       <div id="userInfoHeader" class="flex items-center space-x-3">
@@ -46,10 +46,10 @@
         <!-- BỘ CHUYỂN TAB ĐỘC LẬP -->
         <div class="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
           <button id="tabMemBtn" onclick="selectTab('thanhvien')" class="tab-btn active py-3 px-4 rounded-xl font-bold text-xs md:text-sm transition flex items-center justify-center gap-2">
-            <span>📜</span> 1. XÁC NHẬN THÀNH VIÊN CLB
+            <span>📜</span> 1. XÁC NHẬN THÀNH VIÊN
           </button>
           <button id="tabActBtn" onclick="selectTab('hoatdong')" class="tab-btn py-3 px-4 rounded-xl font-bold text-xs md:text-sm bg-white text-slate-600 border border-slate-200 hover:bg-sky-50 transition flex items-center justify-center gap-2">
-            <span>📋</span> 2. XÁC NHẬN HOẠT ĐỘNG CLB
+            <span>📋</span> 2. XÁC NHẬN HOẠT ĐỘNG
           </button>
         </div>
 
@@ -59,8 +59,8 @@
         <div id="sectionMember" class="space-y-4">
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase">Chọn Đơn vị / CLB đang tham gia:</label>
-              <p class="text-[11px] text-slate-500">Hệ thống tự động lọc các đơn vị bạn là thành viên chính thức</p>
+              <label class="block text-xs font-bold text-slate-700 uppercase">Chọn đơn vị đang tham gia:</label>
+              <p class="text-[11px] text-slate-500">Hệ thống lọc thông tin tự động</p>
             </div>
             <select id="memClubSelect" onchange="renderMemberDetail()" class="w-full md:w-72 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-sky-900 outline-none focus:ring-2 focus:ring-sky-500">
               <option value="">-- Đang tải dữ liệu --</option>
@@ -69,10 +69,10 @@
 
           <!-- KẾT QUẢ XÁC MINH THÀNH VIÊN -->
           <div id="memDetailCard" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3" style="display: none;">
-            <div class="font-extrabold text-xs uppercase text-slate-500 tracking-wider">Thông tin xác thực thành viên</div>
+            <div class="font-extrabold text-xs uppercase text-slate-500 tracking-wider">Thông tin thành viên</div>
             <div id="memDetailContent" class="text-xs"></div>
             <button onclick="generateCertificate('thanhvien')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl text-xs shadow-md transition">
-              🖼️ TẢI GIẤY XÁC NHẬN THÀNH VIÊN (.PNG HD)
+              🖼️ TẢI GIẤY XÁC NHẬN THÀNH VIÊN
             </button>
           </div>
         </div>
@@ -83,11 +83,11 @@
         <div id="sectionActivity" class="space-y-4" style="display: none;">
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase">Chọn Đơn vị / CLB tổ chức hoạt động:</label>
-              <p class="text-[11px] text-slate-500">Dữ liệu lấy trực tiếp từ sổ theo dõi hoạt động của đơn vị</p>
+              <label class="block text-xs font-bold text-slate-700 uppercase">Chọn Đơn vị tổ chức hoạt động:</label>
+              <p class="text-[11px] text-slate-500">Dữ liệu được cập nhật tự động</p>
             </div>
             <select id="actClubSelect" onchange="loadClubActivities()" class="w-full md:w-72 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-sky-900 outline-none focus:ring-2 focus:ring-sky-500">
-              <option value="">-- Chọn Đơn vị / CLB --</option>
+              <option value="">-- Chọn Đơn vị  --</option>
             </select>
           </div>
 
@@ -99,7 +99,7 @@
             </div>
             <div id="actListContent" class="text-xs space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             <button onclick="generateCertificate('hoatdong')" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl text-xs shadow-md transition">
-              🖼️ TẢI GIẤY XÁC NHẬN HOẠT ĐỘNG (.PNG HD)
+              🖼️ TẢI GIẤY XÁC NHẬN HOẠT ĐỘNG
             </button>
           </div>
         </div>
@@ -217,7 +217,7 @@
 
     function populateMemberClubs() {
       const select = document.getElementById('memClubSelect');
-      select.innerHTML = '<option value="">-- Chọn Câu lạc bộ --</option>';
+      select.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
       if (myMembershipList.length > 0) {
         myMembershipList.forEach(m => {
           select.innerHTML += `<option value="${m.tenClb}">${m.tenClb}</option>`;
@@ -253,7 +253,7 @@
 
     function populateAllClubs() {
       const select = document.getElementById('actClubSelect');
-      select.innerHTML = '<option value="">-- Chọn Câu lạc bộ --</option>';
+      select.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
       allClubList.forEach(c => {
         select.innerHTML += `<option value="${c}">${c}</option>`;
       });
@@ -310,14 +310,14 @@
       if (type === 'thanhvien') {
         const clb = document.getElementById('memClubSelect').value;
         const mem = myMembershipList.find(m => m.tenClb === clb);
-        if (!mem) { showToast("❌ Vui lòng chọn Câu lạc bộ hợp lệ!", "error"); return; }
+        if (!mem) { showToast("❌ Vui lòng chọn đơn vị hợp lệ!", "error"); return; }
         payload.tenClb = mem.tenClb;
         payload.chucVu = mem.chucVu;
         payload.hocKi = mem.hocKi;
         payload.namHoc = mem.namHoc;
       } else {
         const clb = document.getElementById('actClubSelect').value;
-        if (!clb) { showToast("❌ Vui lòng chọn Câu lạc bộ!", "error"); return; }
+        if (!clb) { showToast("❌ Vui lòng chọn đơn vị!", "error"); return; }
         const checked = Array.from(document.querySelectorAll('.clb-act-check:checked')).map(c => currentActivities[parseInt(c.value)]);
         if (checked.length === 0) { showToast("⚠️ Vui lòng chọn ít nhất 1 hoạt động!", "error"); return; }
         if (checked.length > 5) { showToast("⚠️ Tối đa 5 hoạt động / 1 giấy!", "error"); return; }
@@ -325,14 +325,14 @@
         payload.selectedActs = checked;
       }
 
-      showToast("⏳ Đang kết xuất & chuẩn bị tải ảnh...", "info");
+      showToast("⏳ Đang kiểm tra thông tin...", "info");
 
       fetch(CLB_API_URL, { method: "POST", body: JSON.stringify(payload) })
       .then(r => r.json())
       .then(res => {
         if (res.success && res.downloadUrl) {
           if (res.isCached) {
-            showToast("⚡ Đã tải ảnh có sẵn từ hệ thống!", "success");
+            showToast("⚡ Đã tải ảnh từ hệ thống!", "success");
           } else {
             showToast("🎉 Đã tạo mới & lưu vào hệ thống thành công!", "success");
           }
