@@ -111,62 +111,94 @@
     var currentUser = null;
 
     window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    
-    let name = urlParams.get('name') || urlParams.get('hoTen') || urlParams.get('svName');
-    let lop = urlParams.get('lop') || urlParams.get('svLop');
-    // Đọc ưu tiên tham số khoa từ URL, nếu hoàn toàn rỗng mới lấy tên mặc định
-    let khoa = urlParams.get('khoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      let name = urlParams.get('name') || urlParams.get('hoTen') || urlParams.get('svName');
+      let lop = urlParams.get('lop') || urlParams.get('svLop');
+      let khoa = urlParams.get('khoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
 
-    let mssv = "";
-    if (token) {
+      let mssv = "";
+      if (token) {
         try { mssv = atob(token); } catch(e) {}
-    } else {
+      } else {
         mssv = urlParams.get('mssv');
-    }
+      }
 
-    // Đọc dự phòng từ SessionStorage
-    const savedStudent = sessionStorage.getItem('loggedStudent');
-    if (savedStudent) {
+      // Đọc dự phòng từ SessionStorage
+      const savedStudent = sessionStorage.getItem('loggedStudent');
+      if (savedStudent) {
         try {
-        const parsed = JSON.parse(savedStudent);
-        if (!mssv) mssv = parsed.mssv;
-        if (!name) name = parsed.hoTen || parsed.ten;
-        if (!lop) lop = parsed.lop;
-        if (!khoa) khoa = parsed.tuongKhoa || parsed.khoa || parsed.svKhoa;
+          const parsed = JSON.parse(savedStudent);
+          if (!mssv) mssv = parsed.mssv;
+          if (!name) name = parsed.hoTen || parsed.ten;
+          if (!lop) lop = parsed.lop;
+          if (!khoa) khoa = parsed.tuongKhoa || parsed.khoa || parsed.svKhoa;
         } catch(e) {}
-    }
+      }
 
-    if (mssv) {
+      if (mssv) {
         currentUser = {
-        mssv: mssv,
-        hoTen: name ? decodeURIComponent(name) : "Sinh viên Y Dược",
-        lop: lop ? decodeURIComponent(lop) : "--",
-        tuongKhoa: (khoa && khoa !== "undefined") ? decodeURIComponent(khoa) : "Y tế công cộng"
+          mssv: mssv,
+          hoTen: name ? decodeURIComponent(name) : "Sinh viên Y Dược",
+          lop: lop ? decodeURIComponent(lop) : "--",
+          tuongKhoa: (khoa && khoa !== "undefined") ? decodeURIComponent(khoa) : "Y tế công cộng"
         };
 
         document.getElementById('svName').textContent = currentUser.hoTen;
         document.getElementById('svMeta').textContent = "MSSV: " + currentUser.mssv + " • Lớp: " + currentUser.lop + " • Trường/Khoa: " + currentUser.tuongKhoa;
         document.getElementById('userFullName').textContent = "👋 " + currentUser.hoTen;
-    } else {
+        
+        // TỰ ĐỘNG TẢI DANH SÁCH NĂM HỌC TỪ SHEET
+        loadSchoolYears();
+      } else {
         alert("Không tìm thấy thông tin sinh viên!");
         goBackToPortal();
-    }
+      }
     });
+
+    // HÀM TỰ ĐỘNG LẤY DANH SÁCH TAB NĂM HỌC (NH ...) TỪ GOOGLE SHEET
+    function loadSchoolYears() {
+      const yearSelect = document.getElementById("namHocSelect");
+      yearSelect.innerHTML = '<option value="">Đang tải danh sách năm học...</option>';
+
+      fetch(GOOGLE_API_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: "getSchoolYears" })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const list = data.schoolYears || [];
+        if (list.length > 0) {
+          yearSelect.innerHTML = '<option value="">-- Chọn Năm Học --</option>';
+          list.forEach(yearName => {
+            const opt = document.createElement("option");
+            opt.value = yearName;
+            opt.textContent = yearName;
+            yearSelect.appendChild(opt);
+          });
+        } else {
+          yearSelect.innerHTML = '<option value="">-- Không có dữ liệu năm học --</option>';
+        }
+      })
+      .catch(err => {
+        console.error("Lỗi nạp năm học:", err);
+        yearSelect.innerHTML = '<option value="">-- Lỗi nạp dữ liệu năm học --</option>';
+      });
+    }
 
     function handleNamHocChange() {
       const selectedSheet = document.getElementById('namHocSelect').value;
       const progSelect = document.getElementById('programSelect');
       
       if (!selectedSheet) {
-        progSelect.innerHTML = '<option value="">-- Chọn năm học --</option>';
+        progSelect.innerHTML = '<option value="">-- Vui lòng chọn năm học trước --</option>';
         progSelect.disabled = true;
         return;
       }
       
       progSelect.disabled = true;
-      progSelect.innerHTML = '<option value="">Đang kiểm tra...</option>';
+      progSelect.innerHTML = '<option value="">Đang kiểm tra chương trình đạt được...</option>';
       
       fetch(GOOGLE_API_URL, {
         method: "POST",
