@@ -717,7 +717,8 @@
       if (sInfo) {
         const hoTenVal = sInfo.hoTen || sInfo.ten || sInfo.name || "";
         const lopVal = sInfo.lop || "";
-        const khoaVal = sInfo.tuongKhoa || sInfo.khoa || sInfo.svKhoa || "";
+        // Đọc đúng các tên thuộc tính từ API Gateway
+        const khoaVal = sInfo.truongKhoa || sInfo.tuongKhoa || sInfo.khoa || sInfo.svKhoa || "";
 
         targetUrl += `&name=${encodeURIComponent(hoTenVal)}&lop=${encodeURIComponent(lopVal)}&khoa=${encodeURIComponent(khoaVal)}`;
       }

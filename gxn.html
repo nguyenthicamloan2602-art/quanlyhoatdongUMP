@@ -226,26 +226,33 @@
       if (mssv || (savedStudent && !urlParams.get('isAdmin'))) {
         let name = urlParams.get('name') || urlParams.get('hoTen');
         let lop = urlParams.get('lop');
-        let khoa = urlParams.get('khoa') || urlParams.get('tuongKhoa');
+        let khoa = urlParams.get('khoa') || urlParams.get('truongKhoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
 
-        if (savedStudent && !mssv) {
+        // Đọc trực tiếp từ data gốc đã lưu ở sessionStorage
+        if (savedStudent) {
           try {
             const parsed = JSON.parse(savedStudent);
-            mssv = parsed.mssv;
-            name = parsed.hoTen || parsed.ten;
-            lop = parsed.lop;
-            khoa = parsed.tuongKhoa || parsed.khoa;
+            if (!mssv) mssv = parsed.mssv;
+            if (!name) name = parsed.hoTen || parsed.ten;
+            if (!lop) lop = parsed.lop;
+            if (!khoa || khoa === "undefined") {
+              khoa = parsed.truongKhoa || parsed.tuongKhoa || parsed.khoa || parsed.svKhoa;
+            }
           } catch(e) {}
         }
+
+        // Làm sạch chuỗi Khoa, nếu hoàn toàn rỗng thì lấy tên trường chung
+        let finalKhoa = (khoa && khoa !== "undefined") ? decodeURIComponent(khoa).trim() : "";
+        if (!finalKhoa) finalKhoa = "Đại học Y Dược TP.HCM";
 
         currentUser = {
           mssv: mssv,
           hoTen: name ? decodeURIComponent(name) : "Sinh viên Y Dược",
           lop: lop ? decodeURIComponent(lop) : "--",
-          tuongKhoa: (khoa && khoa !== "undefined") ? decodeURIComponent(khoa) : "Y tế công cộng"
+          tuongKhoa: finalKhoa
         };
 
-        // Đảm bảo hiển thị giao diện nộp đơn của Sinh viên
+        // Cập nhật giao diện Sinh viên
         document.getElementById('svName').textContent = currentUser.hoTen;
         document.getElementById('svMeta').textContent = "MSSV: " + currentUser.mssv + " • Lớp: " + currentUser.lop + " • Trường/Khoa: " + currentUser.tuongKhoa;
         document.getElementById('userFullName').textContent = "👋 " + currentUser.hoTen;
@@ -285,7 +292,6 @@
         return; 
       }
 
-      // Nếu không thuộc trường hợp nào thì quay về Trang chủ
       goBackToPortal();
     });
 

@@ -141,7 +141,7 @@
       
       let name = urlParams.get('name') || urlParams.get('hoTen') || urlParams.get('svName');
       let lop = urlParams.get('lop') || urlParams.get('svLop');
-      let khoa = urlParams.get('khoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
+      let khoa = urlParams.get('khoa') || urlParams.get('truongKhoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
 
       let mssv = "";
       if (token) {
@@ -150,7 +150,7 @@
         mssv = urlParams.get('mssv');
       }
 
-      // Đọc dự phòng từ SessionStorage
+      // Đọc trực tiếp từ data gốc trong SessionStorage (do index.html lưu khi đăng nhập thành công)
       const savedStudent = sessionStorage.getItem('loggedStudent');
       if (savedStudent) {
         try {
@@ -158,23 +158,29 @@
           if (!mssv) mssv = parsed.mssv;
           if (!name) name = parsed.hoTen || parsed.ten;
           if (!lop) lop = parsed.lop;
-          if (!khoa) khoa = parsed.tuongKhoa || parsed.khoa || parsed.svKhoa;
+          // Lấy đúng khoa gốc từ API Gateway
+          if (!khoa || khoa === "undefined") {
+            khoa = parsed.truongKhoa || parsed.tuongKhoa || parsed.khoa || parsed.svKhoa;
+          }
         } catch(e) {}
       }
 
       if (mssv) {
+        // Làm sạch chuỗi Khoa, nếu không có dữ liệu gốc thì để trường chung của Trường
+        let finalKhoa = (khoa && khoa !== "undefined") ? decodeURIComponent(khoa).trim() : "";
+        if (!finalKhoa) finalKhoa = "Đại học Y Dược TP.HCM";
+
         currentUser = {
           mssv: mssv,
           hoTen: name ? decodeURIComponent(name) : "Sinh viên Y Dược",
           lop: lop ? decodeURIComponent(lop) : "--",
-          tuongKhoa: (khoa && khoa !== "undefined") ? decodeURIComponent(khoa) : "Y tế công cộng"
+          tuongKhoa: finalKhoa
         };
 
         document.getElementById('svName').textContent = currentUser.hoTen;
         document.getElementById('svMeta').textContent = "MSSV: " + currentUser.mssv + " • Lớp: " + currentUser.lop + " • Trường/Khoa: " + currentUser.tuongKhoa;
         document.getElementById('userFullName').textContent = "👋 " + currentUser.hoTen;
         
-        // TỰ ĐỘNG TẢI DANH SÁCH NĂM HỌC TỪ SHEET
         loadSchoolYears();
       } else {
         alert("Không tìm thấy thông tin sinh viên!");
