@@ -468,6 +468,15 @@
   </footer>
 
   <script>
+    // =========================================================================
+    // CÔNG TẮC BẬT / TẮT DỊCH VỤ (true: TẠM KHÓA, false: MỞ HOẠT ĐỘNG BÌNH THƯỜNG)
+    // =========================================================================
+    const SERVICE_LOCK_CONFIG = {
+      gcn: false,    // Giấy chứng nhận (true = khóa, false = mở)
+      gxn: false,    // Giấy xác nhận (true = khóa, false = mở)
+      other: false   // Tiện ích CLB (true = khóa, false = mở)
+    };
+
     const API_GATEWAY_URL = "https://script.google.com/macros/s/AKfycbwhHMEz7Cgor98xp5Yo4s-FuGDrZacxeDAIXOuNlEM1OBoGBV3rPteLK1W7wKc2hSH1sQ/exec";
     const GXN_API_URL = "https://script.google.com/macros/s/AKfycbwF5IVHxFXmM-gEoNEBP_j_qbS__q3EYKYKXAWmm1xuci7wUEmr4GeUaiQkrhrVrrp3/exec";
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyMFqGLsp3SbrxDHEHe0yi0q_GTFulrvug61EZEVN6Vs64QJfpbwjb3KNpIMHlC5Hjh/exec";
@@ -475,6 +484,52 @@
     
     let validMSSV = "";
     let studentInfoData = null;
+
+    function applyServiceLocks() {
+      const serviceKeys = ['gcn', 'gxn', 'other'];
+
+      serviceKeys.forEach(key => {
+        const btn = document.querySelector(`a[onclick*="'${key}'"]`);
+        if (!btn) return;
+
+        const card = btn.closest('.service-item-card');
+
+        if (SERVICE_LOCK_CONFIG[key]) {
+          btn.innerText = "Tạm khóa 🔒";
+          btn.style.background = "#f1f5f9";
+          btn.style.color = "#94a3b8";
+          btn.style.cursor = "not-allowed";
+          btn.style.border = "1px solid #e2e8f0";
+          btn.style.boxShadow = "none";
+          
+          if (card) {
+            card.style.opacity = "0.6";
+            card.style.filter = "grayscale(25%)";
+          }
+        } else {
+          btn.innerHTML = "Tra cứu ngay &rarr;";
+          btn.style.cursor = "pointer";
+          btn.style.boxShadow = "";
+          btn.style.border = "none";
+
+          if (key === 'gcn') {
+            btn.style.background = "#f0f9ff";
+            btn.style.color = "#0284c7";
+          } else if (key === 'gxn') {
+            btn.style.background = "#f0fdf4";
+            btn.style.color = "#16a34a";
+          } else {
+            btn.style.background = "#faf5ff";
+            btn.style.color = "#9333ea";
+          }
+
+          if (card) {
+            card.style.opacity = "1";
+            card.style.filter = "none";
+          }
+        }
+      });
+    }
 
     function switchLoginForm(type) {
       if (type === 'admin') {
@@ -487,6 +542,8 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      applyServiceLocks();
+
       const savedStudent = sessionStorage.getItem('loggedStudent');
       if (savedStudent) {
         studentInfoData = JSON.parse(savedStudent);
@@ -610,7 +667,6 @@
           
           sessionStorage.setItem('loggedAdmin', JSON.stringify({ role: userRole, name: userName }));
           
-          // Chuyển thẳng về trang GXN ở root với cờ mode=admin
           window.location.href = `/gxn.html?mode=admin`;
         } else {
           if (statusEl) statusEl.innerText = "";
@@ -631,6 +687,11 @@
     function goToService(event, serviceKey) {
       if (event) event.preventDefault();
 
+      if (SERVICE_LOCK_CONFIG[serviceKey]) {
+        alert("⚠️ Dịch vụ này hiện đang tạm đóng để cập nhật/bảo trì hệ thống. Vui lòng quay lại sau!");
+        return;
+      }
+
       if (!validMSSV) {
         alert("Vui lòng xác nhận MSSV tại Trang chủ trước!");
         return;
@@ -639,7 +700,6 @@
       const token = btoa(validMSSV);
       let targetUrl = "";
 
-      // Dẫn thẳng từ thư mục gốc theo đúng cấu trúc repository GitHub
       if (serviceKey === 'gxn') {
         targetUrl = `/gxn.html?token=${encodeURIComponent(token)}`;
       } else if (serviceKey === 'gcn') {
