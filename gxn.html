@@ -326,21 +326,47 @@
             groups[dateKey].forEach((item, idx) => {
               const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
               const isClb = item.sourceType === "CLB";
-              const tagColor = isClb ? "bg-purple-100 text-purple-700 border-purple-200" : "bg-sky-100 text-sky-700 border-sky-200";
-              const tagText = isClb ? "Biểu mẫu CLB" : "Giấy xác nhận";
+
+              // 1. MÀU CHO TAG NGUỒN (GXN HOẶC CLB)
+              const sourceTagStyle = isClb 
+                ? "bg-purple-100 text-purple-800 border-purple-300" 
+                : "bg-sky-100 text-sky-800 border-sky-300";
+              const sourceTagText = isClb ? "CLB / Tiện ích" : "Giấy xác nhận";
+
+              // 2. MÀU PHÂN BIỆT THEO TỪNG TRẠNG THÁI
+              const statusStr = (item.trangThaiHienTai || "").toUpperCase();
+              let statusTagStyle = "bg-slate-100 text-slate-700 border-slate-200";
+
+              if (statusStr.includes("CHỜ KÝ") || statusStr.includes("CHỜ KÝ DUYỆT")) {
+                // Đã qua CTV thẩm định, sẵn sàng để QTV ký duyệt
+                statusTagStyle = "bg-emerald-100 text-emerald-800 border-emerald-300";
+              } else if (statusStr.includes("CHỜ QTV")) {
+                // Hồ sơ CLB đi thẳng đến QTV
+                statusTagStyle = "bg-indigo-100 text-indigo-800 border-indigo-300";
+              } else if (statusStr.includes("CHỜ DUYỆT")) {
+                // Mới gửi hoặc bị trả về CTV sửa
+                statusTagStyle = "bg-amber-100 text-amber-800 border-amber-300";
+              }
 
               groupHtml += `
                 <div onclick="selectRequest(${itemJson})" class="bg-white hover:border-indigo-400 p-3 rounded-2xl border border-slate-200 cursor-pointer transition text-xs space-y-2 shadow-sm">
                   <div class="flex justify-between items-start">
                     <div>
                       <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${tagColor}">${tagText}</span>
+                        <!-- Tag Nguồn hồ sơ -->
+                        <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md border ${sourceTagStyle}">
+                          ${sourceTagText}
+                        </span>
                         <span class="font-extrabold text-slate-800 text-sm">${idx + 1}. ${item.hoTen}</span>
                       </div>
                       <div class="text-[11px] text-slate-500 font-medium">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
                       <div class="text-[11px] text-slate-400">Đơn vị/HK: ${item.hocKy}</div>
                     </div>
-                    <span class="text-[10px] bg-emerald-50 text-emerald-600 font-bold px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">${item.trangThaiHienTai}</span>
+                    
+                    <!-- Tag Trạng thái xử lý -->
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${statusTagStyle}">
+                      ${item.trangThaiHienTai}
+                    </span>
                   </div>
 
                   <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[11px] text-slate-500">
