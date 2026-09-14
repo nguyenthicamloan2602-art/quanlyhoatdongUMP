@@ -227,7 +227,7 @@
       }
     }
 
-    // Tải dữ liệu tuần tự chống nghẽn request
+    // Tải dữ liệu tuần tự chuẩn xác
     async function initData() {
       try {
         const resMy = await fetch(CLB_API_URL, { 
@@ -289,33 +289,42 @@
       const semSelect = document.getElementById('memSemesterSelect');
       const card = document.getElementById('memDetailCard');
 
+      if (!clubSelect) return;
       clubSelect.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
       yearSelect.innerHTML = '<option value="">-- Chọn năm học --</option>';
       semSelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
-      card.style.display = 'none';
+      if (card) card.style.display = 'none';
 
       if (myMembershipList && myMembershipList.length > 0) {
+        clubSelect.disabled = false;
+        yearSelect.disabled = false;
+        semSelect.disabled = false;
+
         const uniqueClubs = [...new Set(myMembershipList.map(m => m.tenClb))];
         uniqueClubs.forEach(club => {
           clubSelect.innerHTML += `<option value="${club}">${club}</option>`;
         });
 
+        // Tự động chọn đơn vị đầu tiên và kích hoạt chuỗi chọn liên đới
         clubSelect.selectedIndex = 1;
         onClubChange();
       } else {
-        clubSelect.innerHTML = '<option value="">(Bạn chưa có dữ liệu thành viên)</option>';
+        clubSelect.innerHTML = '<option value="">(Không có dữ liệu thành viên)</option>';
+        yearSelect.innerHTML = '<option value="">-- Trống --</option>';
+        semSelect.innerHTML = '<option value="">-- Trống --</option>';
       }
     }
 
     function onClubChange() {
-      const club = document.getElementById('memClubSelect').value;
+      const clubSelect = document.getElementById('memClubSelect');
       const yearSelect = document.getElementById('memYearSelect');
       const semSelect = document.getElementById('memSemesterSelect');
       const card = document.getElementById('memDetailCard');
 
+      const club = clubSelect ? clubSelect.value : "";
       yearSelect.innerHTML = '<option value="">-- Chọn năm học --</option>';
       semSelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
-      card.style.display = 'none';
+      if (card) card.style.display = 'none';
 
       if (!club) return;
 
@@ -335,13 +344,15 @@
     }
 
     function onYearChange() {
-      const club = document.getElementById('memClubSelect').value;
-      const year = document.getElementById('memYearSelect').value;
+      const clubSelect = document.getElementById('memClubSelect');
+      const yearSelect = document.getElementById('memYearSelect');
       const semSelect = document.getElementById('memSemesterSelect');
       const card = document.getElementById('memDetailCard');
 
+      const club = clubSelect ? clubSelect.value : "";
+      const year = yearSelect ? yearSelect.value : "";
       semSelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
-      card.style.display = 'none';
+      if (card) card.style.display = 'none';
 
       if (!club || !year) return;
 
@@ -368,12 +379,12 @@
       const content = document.getElementById('memDetailContent');
 
       if (!club || !year || !sem) {
-        card.style.display = 'none';
+        if (card) card.style.display = 'none';
         return;
       }
 
       const mem = myMembershipList.find(m => m.tenClb === club && m.namHoc === year && String(m.hocKi) === String(sem));
-      if (mem) {
+      if (mem && card && content) {
         content.innerHTML = `
           <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-emerald-900 space-y-1">
             <div class="font-extrabold text-sm flex items-center gap-1.5">✅ ĐÃ XÁC MINH DỮ LIỆU THÀNH VIÊN</div>
