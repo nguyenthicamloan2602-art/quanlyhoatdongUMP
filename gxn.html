@@ -333,20 +333,50 @@
 
             groups[dateKey].forEach((item, idx) => {
               const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+              const isClb = item.sourceType === "CLB";
+
+              // 1. Phân biệt nhãn nguồn hồ sơ
+              const sourceTagClass = isClb 
+                ? "bg-purple-100 text-purple-800 border-purple-300" 
+                : "bg-sky-100 text-sky-800 border-sky-300";
+              const sourceLabel = isClb ? "CLB / Tiện ích" : "Giấy xác nhận";
+
+              // 2. Phân biệt màu theo trạng thái xét duyệt
+              const statusStr = (item.trangThaiHienTai || "").toUpperCase();
+              let statusBadgeClass = "bg-slate-100 text-slate-700 border-slate-200";
+
+              if (statusStr.includes("CHỜ KÝ") || statusStr.includes("CHỜ KÝ DUYỆT")) {
+                statusBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300"; // CTV đã thẩm định, sẵn sàng ký
+              } else if (statusStr.includes("CHỜ QTV")) {
+                statusBadgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";   // CLB gửi thẳng QTV
+              } else if (statusStr.includes("CHỜ DUYỆT")) {
+                statusBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";     // Đang chờ tiền kiểm
+              }
+
               groupHtml += `
-                <div onclick="selectRequest(${itemJson})" class="bg-white hover:border-indigo-400 p-3 rounded-2xl border border-slate-200 cursor-pointer transition text-xs space-y-2 shadow-sm">
-                  <div class="flex justify-between items-start">
+                <div onclick="selectRequest(${itemJson})" class="bg-white hover:border-indigo-400 p-3.5 rounded-2xl border border-slate-200 cursor-pointer transition text-xs space-y-2.5 shadow-sm">
+                  <div class="flex justify-between items-start gap-2">
                     <div>
-                      <span class="font-extrabold text-slate-800 text-sm">${idx + 1}. ${item.hoTen}</span>
-                      <div class="text-[11px] text-slate-500 font-medium mt-0.5">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
-                      <div class="text-[11px] text-slate-400">Học kỳ: ${item.hocKy}</div>
+                      <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+                        <!-- Tag nhận diện Nguồn hồ sơ -->
+                        <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-md border ${sourceTagClass}">
+                          ${sourceLabel}
+                        </span>
+                        <span class="font-extrabold text-slate-800 text-sm">${idx + 1}. ${item.hoTen}</span>
+                      </div>
+                      <div class="text-[11px] text-slate-500 font-medium">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
+                      <div class="text-[11px] text-slate-600 font-semibold mt-0.5">Nguồn: ${item.hocKy}</div>
                     </div>
-                    <span class="text-[10px] bg-emerald-50 text-emerald-600 font-bold px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">${item.trangThaiHienTai}</span>
+                    
+                    <!-- Tag Trạng thái xét duyệt -->
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${statusBadgeClass}">
+                      ${item.trangThaiHienTai}
+                    </span>
                   </div>
 
-                  <div class="flex justify-between items-center pt-1 border-t border-slate-100 text-[11px] text-slate-500">
-                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-semibold">👤 ${item.assignedCtv || "Cán bộ"}</span>
-                    <span class="text-slate-400">🕒 ${item.thoiGian.split(' ')[1] || item.thoiGian}</span>
+                  <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                    <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">👤 ${item.assignedCtv || "Cán bộ"}</span>
+                    <span class="text-slate-400">🕒 ${item.thoiGian.includes(' ') ? item.thoiGian.split(' ')[1] : item.thoiGian}</span>
                   </div>
                 </div>
               `;
@@ -368,8 +398,10 @@
       document.getElementById('workspaceEmpty').style.display = 'none';
       document.getElementById('workspaceDetail').style.display = 'block';
 
-      document.getElementById('workSvTitle').textContent = item.hoTen + " (" + item.mssv + ")";
-      document.getElementById('workSvMeta').textContent = "Lớp: " + item.lop + " • Học kỳ: " + item.hocKy + " • Gửi lúc: " + item.thoiGian;
+      const isClb = item.sourceType === "CLB";
+      // Đánh dấu rõ loại hồ sơ trên đầu khung chi tiết
+      document.getElementById('workSvTitle').textContent = (isClb ? "[CLB] " : "[GXN] ") + item.hoTen + " (" + item.mssv + ")";
+      document.getElementById('workSvMeta').textContent = "Lớp: " + item.lop + " • Nguồn: " + item.hocKy + " • Gửi lúc: " + item.thoiGian;
 
       if (item.slideId) {
         document.getElementById('btnOpenSlide').href = `https://docs.google.com/presentation/d/${item.slideId}/edit`;
