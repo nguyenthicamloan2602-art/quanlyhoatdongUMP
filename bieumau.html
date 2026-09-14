@@ -227,21 +227,28 @@
       }
     }
 
-    // Tải dữ liệu tuần tự chuẩn xác
+    // Tải dữ liệu tuần tự chuẩn xác và chống đơ UI
     async function initData() {
+      const memSelect = document.getElementById('memClubSelect');
+      if (memSelect) memSelect.innerHTML = '<option value="">⏳ Đang nạp dữ liệu...</option>';
+
       try {
         const resMy = await fetch(CLB_API_URL, { 
           method: "POST", 
           body: JSON.stringify({ action: "getMyClubs", mssv: currentUser.mssv }) 
         }).then(r => r.json());
 
-        if (resMy.success) {
+        if (resMy && resMy.success) {
           myMembershipList = resMy.myClubs || [];
-          populateMemberClubs();
+        } else {
+          console.warn("Cảnh báo từ máy chủ:", resMy ? resMy.error : "Không có phản hồi");
         }
       } catch (err) {
-        console.error("Lỗi getMyClubs:", err);
+        console.error("Lỗi kết nối getMyClubs:", err);
       }
+      
+      // LUÔN LUÔN GỌI HÀM NÀY (Để giao diện thoát khỏi trạng thái "Đang nạp...")
+      populateMemberClubs();
 
       try {
         const resAll = await fetch(CLB_API_URL, { 
@@ -249,16 +256,15 @@
           body: JSON.stringify({ action: "getAllClubs" }) 
         }).then(r => r.json());
 
-        if (resAll.success) {
+        if (resAll && resAll.success) {
           allClubList = resAll.clubs || [];
-          populateAllClubs();
-        } else {
-          populateAllClubs();
         }
       } catch (err) {
-        console.error("Lỗi getAllClubs:", err);
-        populateAllClubs();
+        console.error("Lỗi kết nối getAllClubs:", err);
       }
+      
+      // LUÔN LUÔN GỌI HÀM NÀY
+      populateAllClubs();
     }
 
     function selectTab(tabName) {
