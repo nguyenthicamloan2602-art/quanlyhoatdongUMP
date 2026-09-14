@@ -377,27 +377,33 @@
         payload.selectedActs = checked;
       }
 
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
       showToast("⏳ Hệ thống đang xử lý, vui lòng chờ...", "info");
 
       fetch(CLB_API_URL, { method: "POST", body: JSON.stringify(payload) })
       .then(r => r.json())
       .then(res => {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
+        
         if (res.success) {
-          if (res.isInstant) {
-            showToast("🎉 Đã tạo ảnh thành công!", "success");
+          // Luồng 1: Trả ảnh ngay lập tức (Thành viên)
+          if (res.downloadUrl) {
+            showToast("🎉 Đã tạo giấy xác nhận thành công!", "success");
             window.open(res.downloadUrl, '_blank');
-          } else {
-            showToast("🎉 " + res.message, "success");
-            loadHistory();
+          } 
+          // Luồng 2: Chuyển QTV ký duyệt (Hoạt động)
+          else {
+            showToast("🎉 " + (res.message || "Đã gửi yêu cầu đến Ban Thư ký thành công!"), "success");
+            if (typeof loadHistory === "function") {
+              loadHistory();
+            }
           }
         } else {
-          showToast("❌ " + res.error, "error");
+          showToast("❌ " + (res.error || "Có lỗi xảy ra trong quá trình xử lý!"), "error");
         }
       })
       .catch(err => {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
         showToast("❌ Lỗi kết nối máy chủ!", "error");
       });
     }
