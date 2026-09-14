@@ -524,8 +524,16 @@
       .then(r => r.json())
       .then(res => {
         if (res.success && res.history && res.history.length > 0) {
+          // LỌC CHỈ LẤY HỒ SƠ HOẠT ĐỘNG (BỎ QUA TOÀN BỘ HỒ SƠ THÀNH VIÊN)
+          const actHistory = res.history.filter(item => item.loaiBieuMau === 'hoatdong');
+
+          if (actHistory.length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chưa có yêu cầu hoạt động nào.</p>';
+            return;
+          }
+
           container.innerHTML = '';
-          res.history.forEach(item => {
+          actHistory.forEach(item => {
             const isDone = item.trangThai.includes("Hoàn thành") || item.trangThai.includes("Đã duyệt");
             const isReject = item.trangThai.includes("Từ chối");
             
@@ -537,7 +545,7 @@
               <div class="bg-white p-3.5 rounded-2xl border border-slate-200 text-xs space-y-2 shadow-sm">
                 <div class="flex justify-between items-center">
                   <span class="font-extrabold text-sky-900">${item.tenClb}</span>
-                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge}">${item.trangThai}</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${badge}">${item.trangThai}</span>
                 </div>
                 <div class="text-[11px] text-slate-500">🕒 ${item.thoiGian}</div>
                 ${item.lyDoTuChoi ? `<div class="text-rose-600 bg-rose-50 p-2 rounded-lg text-[11px]">❌ ${item.lyDoTuChoi}</div>` : ''}
