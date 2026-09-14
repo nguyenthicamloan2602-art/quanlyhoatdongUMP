@@ -365,7 +365,9 @@
                       </div>
                       <div class="text-[11px] text-slate-500 font-medium">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
                       <!-- Hiển thị đúng Tên CLB hoặc Tên Học kỳ -->
-                      <div class="text-[11px] text-slate-600 font-semibold mt-0.5">${isClb ? 'Đơn vị: ' : 'Học kỳ: '}${item.hocKy}</div>
+                      <div class="text-[11px] text-slate-600 font-semibold mt-0.5">
+                        ${isClb ? 'Đơn vị: ' : 'Học kỳ: '}${item.hocKy}
+                      </div>
                     </div>
                     
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${statusBadgeClass}">
