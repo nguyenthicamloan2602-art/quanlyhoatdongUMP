@@ -286,36 +286,109 @@
       showToast("");
     }
 
+    // 1. Nạp danh sách Đơn vị duy nhất
     function populateMemberClubs() {
-      const select = document.getElementById('memClubSelect');
-      select.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
-      if (myMembershipList.length > 0) {
-        myMembershipList.forEach(m => {
-          select.innerHTML += `<option value="${m.tenClb}">${m.tenClb}</option>`;
+      const clubSelect = document.getElementById('memClubSelect');
+      const yearSelect = document.getElementById('memYearSelect');
+      const semSelect = document.getElementById('memSemesterSelect');
+      const card = document.getElementById('memDetailCard');
+
+      clubSelect.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
+      yearSelect.innerHTML = '<option value="">-- Chọn năm học --</option>';
+      semSelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
+      card.style.display = 'none';
+
+      if (myMembershipList && myMembershipList.length > 0) {
+        // Lấy danh sách các CLB duy nhất của SV
+        const uniqueClubs = [...new Set(myMembershipList.map(m => m.tenClb))];
+        uniqueClubs.forEach(club => {
+          clubSelect.innerHTML += `<option value="${club}">${club}</option>`;
         });
-        select.selectedIndex = 1;
-        renderMemberDetail();
+
+        // Tự động chọn đơn vị đầu tiên
+        clubSelect.selectedIndex = 1;
+        onClubChange();
       } else {
-        select.innerHTML = '<option value="">(Bạn chưa có dữ liệu thành viên)</option>';
-        document.getElementById('memDetailCard').style.display = 'none';
+        clubSelect.innerHTML = '<option value="">(Bạn chưa có dữ liệu thành viên)</option>';
       }
     }
 
+    // 2. Khi chọn Đơn vị -> Nạp các Năm học tương ứng
+    function onClubChange() {
+      const club = document.getElementById('memClubSelect').value;
+      const yearSelect = document.getElementById('memYearSelect');
+      const semSelect = document.getElementById('memSemesterSelect');
+      const card = document.getElementById('memDetailCard');
+
+      yearSelect.innerHTML = '<option value="">-- Chọn năm học --</option>';
+      semSelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
+      card.style.display = 'none';
+
+      if (!club) return;
+
+      const matchedYears = myMembershipList
+        .filter(m => m.tenClb === club && m.namHoc)
+        .map(m => m.namHoc);
+      const uniqueYears = [...new Set(matchedYears)];
+
+      uniqueYears.forEach(year => {
+        yearSelect.innerHTML += `<option value="${year}">Năm học ${year}</option>`;
+      });
+
+      if (uniqueYears.length > 0) {
+        yearSelect.selectedIndex = 1;
+        onYearChange();
+      }
+    }
+
+    // 3. Khi chọn Năm học -> Nạp các Học kỳ tương ứng
+    function onYearChange() {
+      const club = document.getElementById('memClubSelect').value;
+      const year = document.getElementById('memYearSelect').value;
+      const semSelect = document.getElementById('memSemesterSelect');
+      const card = document.getElementById('memDetailCard');
+
+      semSelect.innerHTML = '<option value="">-- Chọn học kỳ --</option>';
+      card.style.display = 'none';
+
+      if (!club || !year) return;
+
+      const matchedSemesters = myMembershipList
+        .filter(m => m.tenClb === club && m.namHoc === year && m.hocKi)
+        .map(m => m.hocKi);
+      const uniqueSems = [...new Set(matchedSemesters)];
+
+      uniqueSems.forEach(sem => {
+        semSelect.innerHTML += `<option value="${sem}">Học kỳ ${sem}</option>`;
+      });
+
+      if (uniqueSems.length > 0) {
+        semSelect.selectedIndex = 1;
+        renderMemberDetail();
+      }
+    }
+
+    // 4. Hiển thị thông tin chính xác theo bộ 3 (Đơn vị + Năm học + Học kỳ)
     function renderMemberDetail() {
-      const selectedClb = document.getElementById('memClubSelect').value;
+      const club = document.getElementById('memClubSelect').value;
+      const year = document.getElementById('memYearSelect').value;
+      const sem = document.getElementById('memSemesterSelect').value;
       const card = document.getElementById('memDetailCard');
       const content = document.getElementById('memDetailContent');
 
-      if (!selectedClb) { card.style.display = 'none'; return; }
+      if (!club || !year || !sem) {
+        card.style.display = 'none';
+        return;
+      }
 
-      const mem = myMembershipList.find(m => m.tenClb === selectedClb);
+      const mem = myMembershipList.find(m => m.tenClb === club && m.namHoc === year && String(m.hocKi) === String(sem));
       if (mem) {
         content.innerHTML = `
           <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-emerald-900 space-y-1">
-            <div class="font-extrabold text-sm flex items-center gap-1.5">✅ ĐÃ XÁC MINH THÀNH VIÊN</div>
-            <div class="text-[12px] pt-1">• Đơn vị: <b>${mem.tenClb}</b></div>
-            <div class="text-[12px]">• Chức vụ: <b>${mem.chucVu}</b></div>
-            <div class="text-[12px]">• Học kì: <b>${mem.hocKi || '--'}</b> • Năm học: <b>${mem.namHoc || '--'}</b></div>
+            <div class="font-extrabold text-sm flex items-center gap-1.5">✅ ĐÃ XÁC MINH DỮ LIỆU THÀNH VIÊN</div>
+            <div class="text-[12px] pt-1">• Đơn vị công tác: <b>${mem.tenClb}</b></div>
+            <div class="text-[12px]">• Chức vụ / Vai trò: <b>${mem.chucVu}</b></div>
+            <div class="text-[12px]">• Thời gian: <b>Học kỳ ${mem.hocKi}</b> — <b>Năm học ${mem.namHoc}</b></div>
           </div>
         `;
         card.style.display = 'block';
@@ -385,8 +458,14 @@
 
       if (type === 'thanhvien') {
         const clb = document.getElementById('memClubSelect').value;
-        const mem = myMembershipList.find(m => m.tenClb === clb);
-        if (!mem) { showToast("❌ Vui lòng chọn đơn vị hợp lệ!", "error"); return; }
+        const year = document.getElementById('memYearSelect').value;
+        const sem = document.getElementById('memSemesterSelect').value;
+
+        const mem = myMembershipList.find(m => m.tenClb === clb && m.namHoc === year && String(m.hocKi) === String(sem));
+        if (!mem) { 
+          showToast("❌ Vui lòng chọn đầy đủ Đơn vị, Năm học và Học kỳ!", "error"); 
+          return; 
+        }
         payload.tenClb = mem.tenClb;
         payload.chucVu = mem.chucVu;
         payload.hocKi = mem.hocKi;
