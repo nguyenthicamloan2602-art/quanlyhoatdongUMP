@@ -54,9 +54,7 @@
           </button>
         </div>
 
-        <!-- ========================================================================= -->
-        <!-- KHUNG 1: XÁC NHẬN THÀNH VIÊN (CHỌN ĐƠN VỊ - NĂM HỌC - HỌC KỲ) -->
-        <!-- ========================================================================= -->
+        <!-- KHUNG 1: XÁC NHẬN THÀNH VIÊN -->
         <div id="sectionMember" class="space-y-4">
           <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
             <div>
@@ -65,15 +63,13 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <!-- Chọn Đơn vị -->
               <div>
                 <label class="block text-[11px] font-bold text-slate-600 mb-1 uppercase">1. Đơn vị/CLB:</label>
                 <select id="memClubSelect" onchange="onClubChange()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-sky-900 outline-none focus:ring-2 focus:ring-sky-500">
-                  <option value="">-- Đang tải dữ liệu --</option>
+                  <option value="">-- Chọn đơn vị --</option>
                 </select>
               </div>
 
-              <!-- Chọn Năm học -->
               <div>
                 <label class="block text-[11px] font-bold text-slate-600 mb-1 uppercase">2. Năm học:</label>
                 <select id="memYearSelect" onchange="onYearChange()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-sky-900 outline-none focus:ring-2 focus:ring-sky-500">
@@ -81,7 +77,6 @@
                 </select>
               </div>
 
-              <!-- Chọn Học kỳ -->
               <div>
                 <label class="block text-[11px] font-bold text-slate-600 mb-1 uppercase">3. Học kỳ:</label>
                 <select id="memSemesterSelect" onchange="renderMemberDetail()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-sky-900 outline-none focus:ring-2 focus:ring-sky-500">
@@ -91,7 +86,6 @@
             </div>
           </div>
 
-          <!-- THẺ HIỂN THỊ CHI TIẾT VÀ NÚT TẢI -->
           <div id="memDetailCard" class="bg-white p-5 rounded-2xl border border-slate-200 space-y-3" style="display: none;">
             <div class="font-extrabold text-xs uppercase text-slate-500 tracking-wider">Thông tin xác nhận thành viên</div>
             <div id="memDetailContent" class="text-xs"></div>
@@ -101,9 +95,7 @@
           </div>
         </div>
 
-        <!-- ========================================================================= -->
-        <!-- KHUNG 2: XÁC NHẬN HOẠT ĐỘNG (CHỌN HOẠT ĐỘNG VÀ LỊCH SỬ NHẬN ẢNH) -->
-        <!-- ========================================================================= -->
+        <!-- KHUNG 2: XÁC NHẬN HOẠT ĐỘNG -->
         <div id="sectionActivity" class="space-y-6" style="display: none;">
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
             
@@ -112,7 +104,7 @@
               <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
                 <label class="block text-xs font-bold text-slate-700 uppercase">Chọn Đơn vị tổ chức hoạt động:</label>
                 <select id="actClubSelect" onchange="loadClubActivities()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-sky-900 outline-none focus:ring-2 focus:ring-sky-500">
-                  <option value="">-- Chọn Đơn vị --</option>
+                  <option value="">-- Đang nạp danh sách đơn vị... --</option>
                 </select>
               </div>
 
@@ -128,14 +120,14 @@
               </div>
             </div>
 
-            <!-- CỘT PHẢI: LỊCH SỬ CẤP GIẤY ĐÃ ĐƯỢC PHÊ DUYỆT -->
+            <!-- CỘT PHẢI: LỊCH SỬ CẤP GIẤY -->
             <div class="md:col-span-5 space-y-3 border-t md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6 border-slate-200">
               <div class="flex justify-between items-center">
                 <h4 class="font-extrabold text-slate-800 text-sm uppercase tracking-wide">Lịch sử cấp giấy</h4>
                 <button onclick="loadHistory()" class="text-[11px] text-sky-600 hover:underline font-bold">🔄 Làm mới</button>
               </div>
               <div id="historyContainer" class="space-y-2 max-h-96 overflow-y-auto pr-1">
-                <p class="text-xs text-slate-400 italic text-center py-4">Đang tải lịch sử...</p>
+                <p class="text-xs text-slate-400 italic text-center py-4">Chưa có yêu cầu nào.</p>
               </div>
             </div>
 
@@ -219,7 +211,6 @@
         document.getElementById('userFullName').textContent = "👋 " + currentUser.hoTen;
 
         initData();
-        loadHistory();
       } else {
         alert("Không tìm thấy thông tin đăng nhập!");
         goBackToPortal();
@@ -236,32 +227,38 @@
       }
     }
 
-    function initData() {
-      fetch(CLB_API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ action: "getMyClubs", mssv: currentUser.mssv }) 
-      })
-      .then(r => r.json())
-      .then(resMy => {
+    // Tải dữ liệu tuần tự chống nghẽn request
+    async function initData() {
+      try {
+        const resMy = await fetch(CLB_API_URL, { 
+          method: "POST", 
+          body: JSON.stringify({ action: "getMyClubs", mssv: currentUser.mssv }) 
+        }).then(r => r.json());
+
         if (resMy.success) {
           myMembershipList = resMy.myClubs || [];
           populateMemberClubs();
         }
-      })
-      .catch(err => console.error("Lỗi getMyClubs:", err));
+      } catch (err) {
+        console.error("Lỗi getMyClubs:", err);
+      }
 
-      fetch(CLB_API_URL, { 
-        method: "POST", 
-        body: JSON.stringify({ action: "getAllClubs" }) 
-      })
-      .then(r => r.json())
-      .then(resAll => {
+      try {
+        const resAll = await fetch(CLB_API_URL, { 
+          method: "POST", 
+          body: JSON.stringify({ action: "getAllClubs" }) 
+        }).then(r => r.json());
+
         if (resAll.success) {
           allClubList = resAll.clubs || [];
           populateAllClubs();
+        } else {
+          populateAllClubs();
         }
-      })
-      .catch(err => console.error("Lỗi getAllClubs:", err));
+      } catch (err) {
+        console.error("Lỗi getAllClubs:", err);
+        populateAllClubs();
+      }
     }
 
     function selectTab(tabName) {
@@ -286,7 +283,6 @@
       showToast("");
     }
 
-    // 1. Nạp danh sách Đơn vị duy nhất
     function populateMemberClubs() {
       const clubSelect = document.getElementById('memClubSelect');
       const yearSelect = document.getElementById('memYearSelect');
@@ -299,13 +295,11 @@
       card.style.display = 'none';
 
       if (myMembershipList && myMembershipList.length > 0) {
-        // Lấy danh sách các CLB duy nhất của SV
         const uniqueClubs = [...new Set(myMembershipList.map(m => m.tenClb))];
         uniqueClubs.forEach(club => {
           clubSelect.innerHTML += `<option value="${club}">${club}</option>`;
         });
 
-        // Tự động chọn đơn vị đầu tiên
         clubSelect.selectedIndex = 1;
         onClubChange();
       } else {
@@ -313,7 +307,6 @@
       }
     }
 
-    // 2. Khi chọn Đơn vị -> Nạp các Năm học tương ứng
     function onClubChange() {
       const club = document.getElementById('memClubSelect').value;
       const yearSelect = document.getElementById('memYearSelect');
@@ -341,7 +334,6 @@
       }
     }
 
-    // 3. Khi chọn Năm học -> Nạp các Học kỳ tương ứng
     function onYearChange() {
       const club = document.getElementById('memClubSelect').value;
       const year = document.getElementById('memYearSelect').value;
@@ -368,7 +360,6 @@
       }
     }
 
-    // 4. Hiển thị thông tin chính xác theo bộ 3 (Đơn vị + Năm học + Học kỳ)
     function renderMemberDetail() {
       const club = document.getElementById('memClubSelect').value;
       const year = document.getElementById('memYearSelect').value;
@@ -397,10 +388,15 @@
 
     function populateAllClubs() {
       const select = document.getElementById('actClubSelect');
-      select.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
-      allClubList.forEach(c => {
-        select.innerHTML += `<option value="${c}">${c}</option>`;
-      });
+      if (!select) return;
+      if (allClubList && allClubList.length > 0) {
+        select.innerHTML = '<option value="">-- Chọn đơn vị tổ chức hoạt động --</option>';
+        allClubList.forEach(c => {
+          select.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+      } else {
+        select.innerHTML = '<option value="">(Không có đơn vị khả dụng)</option>';
+      }
     }
 
     function loadClubActivities() {
@@ -489,17 +485,12 @@
         if (btn) btn.disabled = false;
         
         if (res.success) {
-          // Luồng 1: Trả ảnh ngay lập tức (Thành viên)
           if (res.downloadUrl) {
             showToast("🎉 Đã tạo giấy xác nhận thành công!", "success");
             window.open(res.downloadUrl, '_blank');
-          } 
-          // Luồng 2: Chuyển QTV ký duyệt (Hoạt động)
-          else {
+          } else {
             showToast("🎉 " + (res.message || "Đã gửi yêu cầu đến Ban Thư ký thành công!"), "success");
-            if (typeof loadHistory === "function") {
-              loadHistory();
-            }
+            loadHistory();
           }
         } else {
           showToast("❌ " + (res.error || "Có lỗi xảy ra trong quá trình xử lý!"), "error");
@@ -524,11 +515,10 @@
       .then(r => r.json())
       .then(res => {
         if (res.success && res.history && res.history.length > 0) {
-          // LỌC CHỈ LẤY HỒ SƠ HOẠT ĐỘNG (BỎ QUA TOÀN BỘ HỒ SƠ THÀNH VIÊN)
           const actHistory = res.history.filter(item => item.loaiBieuMau === 'hoatdong');
 
           if (actHistory.length === 0) {
-            container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chưa có yêu cầu hoạt động nào.</p>';
+            container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">Chưa có yêu cầu hoạt động nào.</p>';
             return;
           }
 
@@ -560,11 +550,11 @@
             `;
           });
         } else {
-          container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-6">Chưa có yêu cầu nào.</p>';
+          container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">Chưa có yêu cầu hoạt động nào.</p>';
         }
       })
       .catch(err => {
-        container.innerHTML = '<p class="text-xs text-rose-500 italic text-center py-4">Lỗi kết nối khi tải lịch sử!</p>';
+        container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">Chưa có yêu cầu hoạt động nào.</p>';
       });
     }
 
