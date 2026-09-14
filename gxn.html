@@ -333,24 +333,24 @@
 
             groups[dateKey].forEach((item, idx) => {
               const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
-              const isClb = item.sourceType === "CLB";
+              const isClb = (item.sourceType === "CLB");
 
-              // 1. Phân biệt nhãn nguồn hồ sơ
+              // 1. Tag nguồn: CLB màu tím, GXN thường màu xanh trời
               const sourceTagClass = isClb 
                 ? "bg-purple-100 text-purple-800 border-purple-300" 
                 : "bg-sky-100 text-sky-800 border-sky-300";
               const sourceLabel = isClb ? "CLB / Tiện ích" : "Giấy xác nhận";
 
-              // 2. Phân biệt màu theo trạng thái xét duyệt
-              const statusStr = (item.trangThaiHienTai || "").toUpperCase();
+              // 2. Tag trạng thái: Chờ QTV duyệt (Tím than/Indigo), Chờ ký duyệt (Xanh ngọc/Emerald), Chờ duyệt (Cam/Amber)
               let statusBadgeClass = "bg-slate-100 text-slate-700 border-slate-200";
+              const statusStr = (item.trangThaiHienTai || "").toUpperCase();
 
-              if (statusStr.includes("CHỜ KÝ") || statusStr.includes("CHỜ KÝ DUYỆT")) {
-                statusBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300"; // CTV đã thẩm định, sẵn sàng ký
-              } else if (statusStr.includes("CHỜ QTV")) {
-                statusBadgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";   // CLB gửi thẳng QTV
-              } else if (statusStr.includes("CHỜ DUYỆT")) {
-                statusBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";     // Đang chờ tiền kiểm
+              if (isClb || statusStr.includes("CHỜ QTV")) {
+                statusBadgeClass = "bg-indigo-100 text-indigo-800 border-indigo-300";
+              } else if (statusStr.includes("CHỜ KÝ")) {
+                statusBadgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+              } else {
+                statusBadgeClass = "bg-amber-100 text-amber-800 border-amber-300";
               }
 
               groupHtml += `
@@ -358,17 +358,16 @@
                   <div class="flex justify-between items-start gap-2">
                     <div>
                       <div class="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <!-- Tag nhận diện Nguồn hồ sơ -->
                         <span class="text-[9px] font-extrabold px-2 py-0.5 rounded-md border ${sourceTagClass}">
                           ${sourceLabel}
                         </span>
                         <span class="font-extrabold text-slate-800 text-sm">${idx + 1}. ${item.hoTen}</span>
                       </div>
                       <div class="text-[11px] text-slate-500 font-medium">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
-                      <div class="text-[11px] text-slate-600 font-semibold mt-0.5">Nguồn: ${item.hocKy}</div>
+                      <!-- Hiển thị đúng Tên CLB hoặc Tên Học kỳ -->
+                      <div class="text-[11px] text-slate-600 font-semibold mt-0.5">${isClb ? 'Đơn vị: ' : 'Học kỳ: '}${item.hocKy}</div>
                     </div>
                     
-                    <!-- Tag Trạng thái xét duyệt -->
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${statusBadgeClass}">
                       ${item.trangThaiHienTai}
                     </span>
