@@ -458,7 +458,7 @@
       renderCardItems(displayList);
     }
 
-    // VẼ CÁC THẺ ĐƠN RA GIAO DIỆN
+    // VẼ CÁC THẺ ĐƠN RA GIAO DIỆN THEO TỪNG NHÓM NGÀY (CÓ ĐÁNH SỐ THỨ TỰ 1, 2, 3...)
     function renderCardItems(list) {
       const container = document.getElementById('requestListContainer');
       if (!list || list.length === 0) {
@@ -470,36 +470,75 @@
         return;
       }
 
-      let html = "";
-      list.forEach((item, idx) => {
-        const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
-        const isSelected = selectedRequest && selectedRequest.slideId === item.slideId;
-        const isClb = item.sourceType === "CLB";
+      // 1. Nhóm hồ sơ theo từng ngày (dựa vào trường ngayNhom hoặc tách từ thoiGian)
+      const groups = {};
+      list.forEach(item => {
+        let dateKey = item.ngayNhom;
+        if (!dateKey || dateKey === "Khác") {
+          dateKey = item.thoiGian && item.thoiGian.includes(' ') 
+            ? item.thoiGian.split(' ')[0] 
+            : (item.thoiGian || "Không rõ ngày");
+        }
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(item);
+      });
 
+      // 2. Tạo giao diện HTML duyệt qua từng nhóm ngày
+      let html = "";
+      Object.keys(groups).forEach(dateKey => {
+        const subList = groups[dateKey];
+
+        // Tiêu đề ngày đầu mỗi nhóm
         html += `
-          <div onclick="selectRequest(${itemJson})" 
-               class="p-3.5 rounded-2xl border transition-all cursor-pointer text-xs space-y-2 shadow-sm 
-                      ${isSelected ? 'bg-indigo-50/80 border-indigo-500 ring-2 ring-indigo-200' : 'bg-white border-slate-200 hover:border-indigo-300'}">
-            <div class="flex justify-between items-start gap-1">
-              <span class="font-extrabold text-slate-800 text-xs">${idx + 1}. ${item.hoTen}</span>
-              <span class="text-[9px] font-bold px-2 py-0.5 rounded-md shrink-0 
-                     ${isClb ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
-                ${isClb ? 'CLB' : 'GXN'}
+          <div class="space-y-2 mb-3">
+            <div class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-200/80 flex items-center justify-between text-slate-700 shadow-sm">
+              <span class="text-xs font-extrabold flex items-center gap-1.5">
+                📅 ${dateKey}
+              </span>
+              <span class="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.2 rounded-full">
+                ${subList.length} hồ sơ
               </span>
             </div>
-            
-            <div class="text-[11px] text-slate-500 font-medium">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
-            <div class="text-[11px] text-slate-600 font-semibold truncate">
-              ${isClb ? 'Đơn vị: ' : 'HK: '}${item.hocKy}
-            </div>
+            <div class="space-y-2 pl-0.5">
+        `;
 
-            <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 text-[10px] text-slate-400">
-              <span class="text-slate-500 font-medium">👤 ${item.assignedCtv || "QTV"}</span>
-              <span>🕒 ${item.thoiGian.includes(' ') ? item.thoiGian.split(' ')[1] : item.thoiGian}</span>
+        // Render từng hồ sơ với STT đếm lại từ 1, 2, 3... cho mỗi ngày
+        subList.forEach((item, idx) => {
+          const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
+          const isSelected = selectedRequest && selectedRequest.slideId === item.slideId;
+          const isClb = item.sourceType === "CLB";
+
+          html += `
+            <div onclick="selectRequest(${itemJson})" 
+                 class="p-3.5 rounded-2xl border transition-all cursor-pointer text-xs space-y-1.5 shadow-sm 
+                        ${isSelected ? 'bg-indigo-50/80 border-indigo-500 ring-2 ring-indigo-200' : 'bg-white border-slate-200 hover:border-indigo-300'}">
+              <div class="flex justify-between items-start gap-1">
+                <span class="font-extrabold text-slate-800 text-xs">${idx + 1}. ${item.hoTen}</span>
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-md shrink-0 
+                       ${isClb ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'}">
+                  ${isClb ? 'CLB' : 'GXN'}
+                </span>
+              </div>
+              
+              <div class="text-[11px] text-slate-500 font-medium">MSSV: ${item.mssv} • Lớp: ${item.lop}</div>
+              <div class="text-[11px] text-slate-600 font-semibold truncate">
+                ${isClb ? 'Đơn vị: ' : 'HK: '}${item.hocKy}
+              </div>
+
+              <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 text-[10px] text-slate-400">
+                <span class="text-slate-500 font-medium">👤 ${item.assignedCtv || "QTV"}</span>
+                <span>🕒 ${item.thoiGian.includes(' ') ? item.thoiGian.split(' ')[1] : item.thoiGian}</span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
             </div>
           </div>
         `;
       });
+
       container.innerHTML = html;
     }
 
