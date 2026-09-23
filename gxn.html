@@ -391,19 +391,30 @@
       });
     }
 
-    // LỌC VÀ HIỂN THỊ DỮ LIỆU (TỰ ĐỘNG PHÂN BIỆT CTV VÀ QTV)
+    // LỌC VÀ HIỂN THỊ DỮ LIỆU (TỰ ĐỘNG CẬP NHẬT TỔNG CHO CẢ CTV VÀ QTV)
     function filterAndRenderCurrentTab() {
       const isQtv = (currentAdmin && currentAdmin.role === "QTV");
       const tabNav = document.getElementById('adminVerticalTabsNav');
+      const totalBadgeEl = document.getElementById('totalPendingBadge');
 
-      // CTV: ẨN 3 TAB DỌC, HIỂN THỊ TOÀN BỘ ĐƠN ĐƯỢC PHÂN CÔNG
+      // -------------------------------------------------------------
+      // 1. NẾU LÀ TÀI KHOẢN CTV
+      // -------------------------------------------------------------
       if (!isQtv) {
         if (tabNav) tabNav.style.display = 'none';
+
+        // Cập nhật số lượng hồ sơ được giao cho CTV lên badge tiêu đề
+        if (totalBadgeEl) {
+          totalBadgeEl.textContent = allPendingRequests.length;
+        }
+
         renderCardItems(allPendingRequests);
-        return;
+        return; // Kết thúc xử lý riêng cho CTV
       }
 
-      // QTV: HIỆN 3 TAB DỌC ĐỂ PHÂN LOẠI
+      // -------------------------------------------------------------
+      // 2. NẾU LÀ TÀI KHOẢN QTV (BẬT 3 TAB DỌC & PHÂN LOẠI)
+      // -------------------------------------------------------------
       if (tabNav) tabNav.style.display = 'flex';
 
       const clbList = allPendingRequests.filter(r => {
@@ -425,21 +436,20 @@
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // Cập nhật số badge trên 3 nút tab
-      document.getElementById('vbadge-CLB').textContent = clbList.length;
-      document.getElementById('vbadge-DA_DUYET').textContent = daDuyetList.length;
-      document.getElementById('vbadge-CHO_DUYET').textContent = choDuyetList.length;
+      // Cập nhật số lượng trên từng Tab con của QTV
+      const bClb = document.getElementById('vbadge-CLB');
+      const bDa = document.getElementById('vbadge-DA_DUYET');
+      const bCho = document.getElementById('vbadge-CHO_DUYET');
+      if (bClb) bClb.textContent = clbList.length;
+      if (bDa) bDa.textContent = daDuyetList.length;
+      if (bCho) bCho.textContent = choDuyetList.length;
 
-      // Tính và gán tổng số lượng hiển thị lên badge cạnh tiêu đề
-      const totalCount = (isQtv) 
-        ? (clbList.length + daDuyetList.length + choDuyetList.length)
-        : allPendingRequests.length;
-
-      const totalBadgeEl = document.getElementById('totalPendingBadge');
+      // Cập nhật tổng số lượng 3 tab của QTV lên badge tiêu đề
       if (totalBadgeEl) {
-        totalBadgeEl.textContent = totalCount;
+        totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
       }
 
+      // Chọn danh sách theo tab đang chọn để hiển thị
       let displayList = [];
       if (currentActiveVerticalTab === 'CLB') displayList = clbList;
       else if (currentActiveVerticalTab === 'DA_DUYET') displayList = daDuyetList;
