@@ -366,29 +366,43 @@
       });
     }
 
+    // HÀM LOẠI BỎ DẤU TIẾNG VIỆT ĐỂ SO KHỚP CHUỖI AN TOÀN TUYỆT ĐỐI
+    function normalizeStr(str) {
+      if (!str) return "";
+      return str.toString().trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\r\n]+/g, " ").replace(/\s+/g, " ");
+    }
+
     // LỌC VÀ HIỂN THỊ DỮ LIỆU CỤC BỘ THEO 3 TAB
     function filterAndRenderCurrentTab() {
-      // 1. Phân loại
-      const clbList = allPendingRequests.filter(r => r.sourceType === "CLB" && (!r.trangThaiHienTai || r.trangThaiHienTai.toLowerCase().includes("cho")));
+      // 1. Phân loại chuẩn xác (không phụ thuộc vào viết hoa hay dấu tiếng Việt)
+      const clbList = allPendingRequests.filter(r => {
+        if (r.sourceType !== "CLB") return false;
+        const st = normalizeStr(r.trangThaiHienTai);
+        return st === "" || st.includes("cho");
+      });
       
       const daDuyetList = allPendingRequests.filter(r => {
         if (r.sourceType !== "GXN") return false;
-        const st = (r.trangThaiHienTai || "").toLowerCase();
-        return st.includes("cho ky") || st.includes("cho qtv") || st.includes("da kiem tra");
+        const st = normalizeStr(r.trangThaiHienTai);
+        // Khớp: "Chờ ký duyệt", "Chờ QTV ký", "Đã kiểm tra", "Đã thẩm định"
+        return st.includes("cho ky") || st.includes("cho qtv") || st.includes("da kiem tra") || st.includes("da tham dinh");
       });
 
       const choDuyetList = allPendingRequests.filter(r => {
         if (r.sourceType !== "GXN") return false;
-        const st = (r.trangThaiHienTai || "").toLowerCase();
-        return st === "cho duyet" || st === "mới khởi tạo" || st === "";
+        const st = normalizeStr(r.trangThaiHienTai);
+        // Khớp: "Chờ duyệt", "Mới khởi tạo", hoặc ô trạng thái đang rỗng
+        return st === "cho duyet" || st === "moi khoi tao" || st === "" || (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // 2. Cập nhật số badge
+      // 2. Cập nhật số badge trên 3 nút tab
       document.getElementById('vbadge-CLB').textContent = clbList.length;
       document.getElementById('vbadge-DA_DUYET').textContent = daDuyetList.length;
       document.getElementById('vbadge-CHO_DUYET').textContent = choDuyetList.length;
 
-      // 3. Lấy danh sách cần vẽ
+      // 3. Chọn mảng dữ liệu hiển thị theo tab đang click
       let displayList = [];
       if (currentActiveVerticalTab === 'CLB') displayList = clbList;
       else if (currentActiveVerticalTab === 'DA_DUYET') displayList = daDuyetList;
