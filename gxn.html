@@ -88,7 +88,12 @@
           <!-- THANH HEADER PANEL -->
           <div class="flex justify-between items-center pb-3 border-b border-slate-100">
             <div>
-              <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">DANH SÁCH XÉT DUYỆT</h3>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">DANH SÁCH XÉT DUYỆT</h3>
+                <span id="totalPendingBadge" class="bg-indigo-100 text-indigo-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full border border-indigo-200 shadow-sm">
+                  0
+                </span>
+              </div>
               <p class="text-xs text-slate-500 font-medium mt-0.5">Xem xét và phê duyệt giấy xác nhận</p>
             </div>
             <button onclick="reloadPendingAdmin()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition border border-indigo-100 shadow-sm">
@@ -420,10 +425,20 @@
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // Cập nhật số badge
+      // Cập nhật số badge trên 3 nút tab
       document.getElementById('vbadge-CLB').textContent = clbList.length;
       document.getElementById('vbadge-DA_DUYET').textContent = daDuyetList.length;
       document.getElementById('vbadge-CHO_DUYET').textContent = choDuyetList.length;
+
+      // Tính và gán tổng số lượng hiển thị lên badge cạnh tiêu đề
+      const totalCount = (isQtv) 
+        ? (clbList.length + daDuyetList.length + choDuyetList.length)
+        : allPendingRequests.length;
+
+      const totalBadgeEl = document.getElementById('totalPendingBadge');
+      if (totalBadgeEl) {
+        totalBadgeEl.textContent = totalCount;
+      }
 
       let displayList = [];
       if (currentActiveVerticalTab === 'CLB') displayList = clbList;
