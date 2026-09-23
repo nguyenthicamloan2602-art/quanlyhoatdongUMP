@@ -103,7 +103,7 @@
             <div class="lg:col-span-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex gap-3.5 h-[680px]">
               
               <!-- CỘT 3 TAB DỌC (SẼ ĐƯỢC JS TỰ ĐỘNG ẨN NẾU LÀ CTV) -->
-              <div id="adminVerticalTabsNav" class="w-36 flex flex-col gap-2.5 shrink-0 border-r border-slate-200/80 pr-2 select-none">
+              <div id="adminVerticalTabsNav" class="w-36 flex flex-col gap-2.5 shrink-0 border-r border-slate-200/80 pr-2 select-none" style="display: none;">
                 
                 <!-- Tab 1: CLB -->
                 <button id="vtab-CLB" onclick="switchVerticalTab('CLB')" 
@@ -323,6 +323,16 @@
         document.getElementById('studentHeaderCard').style.display = 'none';
         document.getElementById('studentFormPanel').style.display = 'none';
         document.getElementById('adminWorkspacePanel').style.display = 'block';
+
+        // ẨN NGAY LẬP TỨC 3 TAB NẾU LÀ CTV (KHÔNG CHỜ FETCH API)
+        const tabNav = document.getElementById('adminVerticalTabsNav');
+        if (tabNav) {
+          if (currentAdmin.role === "QTV") {
+            tabNav.style.display = 'flex';
+          } else {
+            tabNav.style.display = 'none';
+          }
+        }
 
         reloadPendingAdmin();
         return; 
