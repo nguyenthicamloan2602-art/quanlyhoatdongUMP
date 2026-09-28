@@ -578,13 +578,17 @@
                 ${isClb ? 'Đơn vị: ' : 'HK: '}${item.hocKy}
               </div>
 
-              <!-- CHÂN THẺ: HIỂN THỊ CẢ CTV VÀ QTV ĐƯỢC CHIA ĐỀU -->
+              <!-- CHÂN THẺ HIỂN THỊ ĐÚNG THEO TIẾN ĐỘ -->
               <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 text-[10px]">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-slate-500 font-medium">👤 CTV: ${item.assignedCtv || "Tự động"}</span>
-                  <span class="text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
-                    🔑 QTV: ${item.assignedQtv || "Ban Thư ký"}
-                  </span>
+                  ${item.assignedQtv ? `
+                    <span class="text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                      🔑 QTV: ${item.assignedQtv}
+                    </span>
+                  ` : `
+                    <span class="text-slate-400 italic">⏳ Chờ CTV chuyển</span>
+                  `}
                 </div>
                 <span class="text-slate-400 shrink-0">🕒 ${item.thoiGian.includes(' ') ? item.thoiGian.split(' ')[1] : item.thoiGian}</span>
               </div>
