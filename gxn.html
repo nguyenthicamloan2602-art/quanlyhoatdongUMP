@@ -407,9 +407,11 @@
       });
     }
 
-    // LỌC VÀ HIỂN THỊ DỮ LIỆU: BADGE TIÊU ĐỀ LUÔN GIỮ NGUYÊN TỔNG HỒ SƠ TOÀN HỆ THỐNG
     function filterAndRenderCurrentTab() {
-      const isQtv = (currentAdmin && currentAdmin.role === "QTV");
+      // 1. Chuẩn hóa kiểm tra quyền QTV chống lệch chữ hoa/thường
+      const userRole = currentAdmin && currentAdmin.role ? currentAdmin.role.toString().trim().toUpperCase() : "CTV";
+      const isQtv = (userRole === "QTV");
+
       const tabNav = document.getElementById('adminVerticalTabsNav');
       const totalBadgeEl = document.getElementById('totalPendingBadge');
       const qtvFilterEl = document.getElementById('filterQtvSelect');
@@ -418,15 +420,11 @@
       const searchQuery = searchInputEl ? normalizeStr(searchInputEl.value) : "";
       const selectedQtv = qtvFilterEl ? qtvFilterEl.value : "ALL";
 
-      // 1. DÀNH CHO CỘNG TÁC VIÊN (CTV)
       if (!isQtv) {
         if (tabNav) tabNav.style.display = 'none';
         if (qtvFilterEl) qtvFilterEl.style.display = 'none';
 
-        // Badge tiêu đề luôn là tổng số đơn giao cho CTV
-        if (totalBadgeEl) {
-          totalBadgeEl.textContent = allPendingRequests.length;
-        }
+        if (totalBadgeEl) totalBadgeEl.textContent = allPendingRequests.length;
 
         let ctvList = allPendingRequests.filter(item => {
           if (!searchQuery) return true;
@@ -437,77 +435,62 @@
         return;
       }
 
-      // 2. DÀNH CHO QUẢN TRỊ VIÊN (QTV)
+      // Hiện khung 3 Tab và bộ lọc cho QTV
       if (tabNav) tabNav.style.display = 'flex';
       if (qtvFilterEl) qtvFilterEl.style.display = 'inline-block';
 
-      // Nạp danh sách QTV vào Dropdown
-      if (qtvFilterEl && qtvFilterEl.options.length <= 1) {
-        const uniqueQtvs = new Set();
-        allPendingRequests.forEach(r => {
-          if (r.assignedQtv && r.assignedQtv !== "Ban Thư ký") {
-            uniqueQtvs.add(r.assignedQtv);
-          }
-        });
-
-        uniqueQtvs.forEach(qName => {
-          const opt = document.createElement("option");
-          opt.value = qName;
-          opt.textContent = "🔑 " + qName;
-          qtvFilterEl.appendChild(opt);
-        });
-      }
-
-      // Phân loại 3 Tab gốc
+      // 2. Lọc danh sách an toàn (chống null / undefined)
       const clbList = allPendingRequests.filter(r => {
-        if (r.sourceType !== "CLB") return false;
+        const src = (r.sourceType || "").toString().toUpperCase();
+        if (src !== "CLB") return false;
         const st = normalizeStr(r.trangThaiHienTai);
         return st === "" || st.includes("cho");
       });
       
       const daDuyetList = allPendingRequests.filter(r => {
-        if (r.sourceType !== "GXN") return false;
+        const src = (r.sourceType || "").toString().toUpperCase();
+        if (src !== "GXN") return false;
         const st = normalizeStr(r.trangThaiHienTai);
         return st.includes("cho ky") || st.includes("cho qtv") || st.includes("da kiem tra") || st.includes("da tham dinh");
       });
 
       const choDuyetList = allPendingRequests.filter(r => {
-        if (r.sourceType !== "GXN") return false;
+        const src = (r.sourceType || "").toString().toUpperCase();
+        if (src !== "GXN") return false;
         const st = normalizeStr(r.trangThaiHienTai);
         return st === "cho duyet" || st === "moi khoi tao" || st === "" || 
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // GÁN TỔNG CỘNG 3 LOẠI LÊN BADGE TIÊU ĐỀ: 21 + 89 + 50 = 160
+      // 3. Cập nhật số badge trên từng nút tab
+      const bClb = document.getElementById('vbadge-CLB');
+      const bDa = document.getElementById('vbadge-DA_DUYET');
+      const bCho = document.getElementById('vbadge-CHO_DUYET');
+      if (bClb) bClb.textContent = clbList.length;
+      if (bDa) bDa.textContent = daDuyetList.length;
+      if (bCho) bCho.textContent = choDuyetList.length;
+
+      // 4. Tổng cộng cả 3 loại hiển thị cạnh tiêu đề
       if (totalBadgeEl) {
         totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
       }
 
-      // BADGE TIÊU ĐỀ LUÔN HIỂN THỊ TỔNG SỐ LƯỢNG YÊU CẦU ĐANG CÓ (CLB + ĐÃ DUYỆT + CHỜ DUYỆT)
-      if (totalBadgeEl) {
-        totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
-      }
-
-      // Lấy danh sách nguồn theo tab đang bấm
+      // Chọn danh sách theo tab đang active
       let currentTabList = [];
       if (currentActiveVerticalTab === 'CLB') currentTabList = clbList;
       else if (currentActiveVerticalTab === 'DA_DUYET') currentTabList = daDuyetList;
       else if (currentActiveVerticalTab === 'CHO_DUYET') currentTabList = choDuyetList;
 
-      // Áp dụng bộ lọc theo QTV & Tìm kiếm lên danh sách hiển thị
+      // Áp dụng bộ lọc QTV và ô tìm kiếm
       let finalDisplayList = currentTabList.filter(item => {
         if (selectedQtv !== "ALL") {
-          if (normalizeStr(item.assignedQtv) !== normalizeStr(selectedQtv)) {
-            return false;
-          }
+          if (normalizeStr(item.assignedQtv) !== normalizeStr(selectedQtv)) return false;
         }
-
         if (searchQuery !== "") {
           const matchName = normalizeStr(item.hoTen).includes(searchQuery);
           const matchMssv = normalizeStr(item.mssv).includes(searchQuery);
           if (!matchName && !matchMssv) return false;
         }
-
         return true;
       });
 
