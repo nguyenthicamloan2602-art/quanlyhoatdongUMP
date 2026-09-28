@@ -420,6 +420,7 @@
       const searchQuery = searchInputEl ? normalizeStr(searchInputEl.value) : "";
       const selectedQtv = qtvFilterEl ? qtvFilterEl.value : "ALL";
 
+      // NẾU LÀ CTV: ẨN 3 TAB DỌC VÀ DROPDOWN LỌC
       if (!isQtv) {
         if (tabNav) tabNav.style.display = 'none';
         if (qtvFilterEl) qtvFilterEl.style.display = 'none';
@@ -435,11 +436,28 @@
         return;
       }
 
-      // Hiện khung 3 Tab và bộ lọc cho QTV
+      // NẾU LÀ QTV: HIỆN 3 TAB DỌC VÀ DROPDOWN LỌC
       if (tabNav) tabNav.style.display = 'flex';
       if (qtvFilterEl) qtvFilterEl.style.display = 'inline-block';
 
-      // 2. Lọc danh sách an toàn (chống null / undefined)
+      // TỰ ĐỘNG THU THẬP DANH SÁCH QTV VÀO DROPDOWN NẾU CHƯA CÓ
+      if (qtvFilterEl && qtvFilterEl.options.length <= 1) {
+        const uniqueQtvs = new Set();
+        allPendingRequests.forEach(r => {
+          if (r.assignedQtv && r.assignedQtv !== "Ban Thư ký" && r.assignedQtv !== "Chưa phân công") {
+            uniqueQtvs.add(r.assignedQtv);
+          }
+        });
+
+        uniqueQtvs.forEach(qName => {
+          const opt = document.createElement("option");
+          opt.value = qName;
+          opt.textContent = "🔑 " + qName;
+          qtvFilterEl.appendChild(opt);
+        });
+      }
+
+      // 2. Phân loại 3 nhóm Tab an toàn
       const clbList = allPendingRequests.filter(r => {
         const src = (r.sourceType || "").toString().toUpperCase();
         if (src !== "CLB") return false;
@@ -462,7 +480,7 @@
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // 3. Cập nhật số badge trên từng nút tab
+      // 3. Cập nhật số lượng trên các nút tab của QTV
       const bClb = document.getElementById('vbadge-CLB');
       const bDa = document.getElementById('vbadge-DA_DUYET');
       const bCho = document.getElementById('vbadge-CHO_DUYET');
@@ -470,18 +488,18 @@
       if (bDa) bDa.textContent = daDuyetList.length;
       if (bCho) bCho.textContent = choDuyetList.length;
 
-      // 4. Tổng cộng cả 3 loại hiển thị cạnh tiêu đề
+      // 4. BADGE TIÊU ĐỀ: LUÔN HIỂN THỊ TỔNG CỦA CẢ 3 TAB CỘNG LẠI (CLB + Đã duyệt + Chờ duyệt)
       if (totalBadgeEl) {
         totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
       }
 
-      // Chọn danh sách theo tab đang active
+      // Chọn danh sách theo tab đang bấm
       let currentTabList = [];
       if (currentActiveVerticalTab === 'CLB') currentTabList = clbList;
       else if (currentActiveVerticalTab === 'DA_DUYET') currentTabList = daDuyetList;
       else if (currentActiveVerticalTab === 'CHO_DUYET') currentTabList = choDuyetList;
 
-      // Áp dụng bộ lọc QTV và ô tìm kiếm
+      // 5. Áp dụng bộ lọc QTV và Ô tìm kiếm (không làm đổi số badge tổng ở tiêu đề)
       let finalDisplayList = currentTabList.filter(item => {
         if (selectedQtv !== "ALL") {
           if (normalizeStr(item.assignedQtv) !== normalizeStr(selectedQtv)) return false;
