@@ -31,7 +31,7 @@
       </div>
     </header>
 
-    <!-- MAIN (ĐÃ MỞ RỘNG TỐI ĐA CHIỀU NGANG) -->
+    <!-- MAIN (MỞ RỘNG TOÀN DIỆN CHIỀU NGANG) -->
     <main class="flex-grow p-4 md:p-6 flex items-start justify-center">
       <div class="w-full max-w-[96%] xl:max-w-[1560px] bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-6 md:p-8 space-y-6 border border-sky-100 transition-all">
         
@@ -397,24 +397,19 @@
       const tabNav = document.getElementById('adminVerticalTabsNav');
       const totalBadgeEl = document.getElementById('totalPendingBadge');
 
-      // -------------------------------------------------------------
       // 1. NẾU LÀ TÀI KHOẢN CTV
-      // -------------------------------------------------------------
       if (!isQtv) {
         if (tabNav) tabNav.style.display = 'none';
 
-        // Cập nhật số lượng hồ sơ được giao cho CTV lên badge tiêu đề
         if (totalBadgeEl) {
           totalBadgeEl.textContent = allPendingRequests.length;
         }
 
         renderCardItems(allPendingRequests);
-        return; // Kết thúc xử lý riêng cho CTV
+        return;
       }
 
-      // -------------------------------------------------------------
       // 2. NẾU LÀ TÀI KHOẢN QTV (BẬT 3 TAB DỌC & PHÂN LOẠI)
-      // -------------------------------------------------------------
       if (tabNav) tabNav.style.display = 'flex';
 
       const clbList = allPendingRequests.filter(r => {
@@ -436,7 +431,6 @@
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // Cập nhật số lượng trên từng Tab con của QTV
       const bClb = document.getElementById('vbadge-CLB');
       const bDa = document.getElementById('vbadge-DA_DUYET');
       const bCho = document.getElementById('vbadge-CHO_DUYET');
@@ -444,12 +438,10 @@
       if (bDa) bDa.textContent = daDuyetList.length;
       if (bCho) bCho.textContent = choDuyetList.length;
 
-      // Cập nhật tổng số lượng 3 tab của QTV lên badge tiêu đề
       if (totalBadgeEl) {
         totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
       }
 
-      // Chọn danh sách theo tab đang chọn để hiển thị
       let displayList = [];
       if (currentActiveVerticalTab === 'CLB') displayList = clbList;
       else if (currentActiveVerticalTab === 'DA_DUYET') displayList = daDuyetList;
@@ -470,7 +462,6 @@
         return;
       }
 
-      // 1. Nhóm hồ sơ theo từng ngày (dựa vào trường ngayNhom hoặc tách từ thoiGian)
       const groups = {};
       list.forEach(item => {
         let dateKey = item.ngayNhom;
@@ -483,12 +474,10 @@
         groups[dateKey].push(item);
       });
 
-      // 2. Tạo giao diện HTML duyệt qua từng nhóm ngày
       let html = "";
       Object.keys(groups).forEach(dateKey => {
         const subList = groups[dateKey];
 
-        // Tiêu đề ngày đầu mỗi nhóm
         html += `
           <div class="space-y-2 mb-3">
             <div class="sticky top-0 z-10 bg-slate-100/90 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-slate-200/80 flex items-center justify-between text-slate-700 shadow-sm">
@@ -502,7 +491,6 @@
             <div class="space-y-2 pl-0.5">
         `;
 
-        // Render từng hồ sơ với STT đếm lại từ 1, 2, 3... cho mỗi ngày
         subList.forEach((item, idx) => {
           const itemJson = JSON.stringify(item).replace(/"/g, '&quot;');
           const isSelected = selectedRequest && selectedRequest.slideId === item.slideId;
@@ -525,9 +513,13 @@
                 ${isClb ? 'Đơn vị: ' : 'HK: '}${item.hocKy}
               </div>
 
-              <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 text-[10px] text-slate-400">
-                <span class="text-slate-500 font-medium">👤 ${item.assignedCtv || "QTV"}</span>
-                <span>🕒 ${item.thoiGian.includes(' ') ? item.thoiGian.split(' ')[1] : item.thoiGian}</span>
+              <!-- CHÂN THẺ: HIỂN THỊ CẢ CTV VÀ QTV ĐƯỢC CHIA ĐỀU -->
+              <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 text-[10px]">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-slate-500 font-medium">👤 CTV: ${item.assignedCtv || "Tự động"}</span>
+                  ${item.assignedQtv ? `<span class="text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">🔑 QTV: ${item.assignedQtv}</span>` : ''}
+                </div>
+                <span class="text-slate-400 shrink-0">🕒 ${item.thoiGian.includes(' ') ? item.thoiGian.split(' ')[1] : item.thoiGian}</span>
               </div>
             </div>
           `;
@@ -674,10 +666,8 @@
           toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
           toast.textContent = "🎉 Phê duyệt thành công!";
 
-          // Xóa ngay hồ sơ vừa duyệt khỏi mảng trên RAM
           allPendingRequests = allPendingRequests.filter(r => r.slideId !== processingSlideId);
           
-          // Tìm hồ sơ tiếp theo trong tab đang mở
           let remainingInTab = [];
           if (currentActiveVerticalTab === 'CLB') {
             remainingInTab = allPendingRequests.filter(r => r.sourceType === "CLB");
@@ -693,10 +683,8 @@
             });
           }
 
-          // Cập nhật lại giao diện danh sách
           filterAndRenderCurrentTab();
 
-          // Mở sẵn hồ sơ kế tiếp
           if (remainingInTab.length > 0) {
             selectRequest(remainingInTab[0]);
           } else {
