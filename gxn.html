@@ -85,8 +85,8 @@
         <!-- ========================================== -->
         <div id="adminWorkspacePanel" class="space-y-4" style="display: none;">
           
-          <!-- THANH HEADER PANEL -->
-          <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+          <!-- THANH HEADER PANEL CÓ BỘ LỌC -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <div class="flex items-center gap-2">
                 <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">DANH SÁCH XÉT DUYỆT</h3>
@@ -96,9 +96,25 @@
               </div>
               <p class="text-xs text-slate-500 font-medium mt-0.5">Xem xét và phê duyệt giấy xác nhận</p>
             </div>
-            <button onclick="reloadPendingAdmin()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition border border-indigo-100 shadow-sm">
-              <span>🔄</span> Làm mới danh sách
-            </button>
+
+            <!-- CỤM CÔNG CỤ LỌC VÀ LÀM MỚI -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Ô TÌM KIẾM THEO TÊN / MSSV -->
+              <input type="text" id="adminSearchInput" oninput="filterAndRenderCurrentTab()" 
+                     placeholder="🔍 Tìm tên, MSSV..." 
+                     class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400 w-36 md:w-44 font-medium transition" />
+
+              <!-- DROPDOWN LỌC THEO QTV (CHỈ HIỂN THỊ KHI LÀ QTV) -->
+              <select id="filterQtvSelect" onchange="filterAndRenderCurrentTab()" 
+                      class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+                <option value="ALL">🔑 Tất cả QTV</option>
+                <option value="MY">👤 Chỉ của tôi</option>
+              </select>
+
+              <button onclick="reloadPendingAdmin()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition border border-indigo-100 shadow-sm">
+                <span>🔄</span> Làm mới
+              </button>
+            </div>
           </div>
 
           <!-- LƯỚI KHUNG LÀM VIỆC (CHIỀU CAO 680PX) -->
@@ -391,27 +407,52 @@
       });
     }
 
-    // LỌC VÀ HIỂN THỊ DỮ LIỆU (TỰ ĐỘNG CẬP NHẬT TỔNG CHO CẢ CTV VÀ QTV)
+    // LỌC VÀ HIỂN THỊ DỮ LIỆU KÈM TÍNH NĂNG FILTER QTV VÀ TÌM KIẾM
     function filterAndRenderCurrentTab() {
       const isQtv = (currentAdmin && currentAdmin.role === "QTV");
       const tabNav = document.getElementById('adminVerticalTabsNav');
       const totalBadgeEl = document.getElementById('totalPendingBadge');
+      const qtvFilterEl = document.getElementById('filterQtvSelect');
+      const searchInputEl = document.getElementById('adminSearchInput');
+
+      const searchQuery = searchInputEl ? normalizeStr(searchInputEl.value) : "";
+      const selectedQtvFilter = qtvFilterEl ? qtvFilterEl.value : "ALL";
 
       // 1. NẾU LÀ TÀI KHOẢN CTV
       if (!isQtv) {
         if (tabNav) tabNav.style.display = 'none';
+        if (qtvFilterEl) qtvFilterEl.style.display = 'none';
 
-        if (totalBadgeEl) {
-          totalBadgeEl.textContent = allPendingRequests.length;
-        }
+        // Lọc theo từ khóa tìm kiếm
+        let ctvFiltered = allPendingRequests.filter(r => {
+          if (!searchQuery) return true;
+          return normalizeStr(r.hoTen).includes(searchQuery) || normalizeStr(r.mssv).includes(searchQuery);
+        });
 
-        renderCardItems(allPendingRequests);
+        if (totalBadgeEl) totalBadgeEl.textContent = ctvFiltered.length;
+        renderCardItems(ctvFiltered);
         return;
       }
 
-      // 2. NẾU LÀ TÀI KHOẢN QTV (BẬT 3 TAB DỌC & PHÂN LOẠI)
+      // 2. NẾU LÀ TÀI KHOẢN QTV
       if (tabNav) tabNav.style.display = 'flex';
+      if (qtvFilterEl) qtvFilterEl.style.display = 'inline-block';
 
+      // TỰ ĐỘNG ĐIỀN DANH SÁCH CÁC QTV VÀO DROPDOWN FILTER (NẾU CHƯA CÓ)
+      if (qtvFilterEl && qtvFilterEl.options.length <= 2) {
+        const uniqueQtvs = new Set();
+        allPendingRequests.forEach(r => {
+          if (r.assignedQtv && r.assignedQtv !== "Ban Thư ký") uniqueQtvs.add(r.assignedQtv);
+        });
+        uniqueQtvs.forEach(qName => {
+          const opt = document.createElement("option");
+          opt.value = qName;
+          opt.textContent = "🔑 " + qName;
+          qtvFilterEl.appendChild(opt);
+        });
+      }
+
+      // PHÂN LOẠI 3 TAB GỐC
       const clbList = allPendingRequests.filter(r => {
         if (r.sourceType !== "CLB") return false;
         const st = normalizeStr(r.trangThaiHienTai);
@@ -431,6 +472,7 @@
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
+      // Cập nhật số lượng trên 3 Tab dọc
       const bClb = document.getElementById('vbadge-CLB');
       const bDa = document.getElementById('vbadge-DA_DUYET');
       const bCho = document.getElementById('vbadge-CHO_DUYET');
@@ -438,16 +480,37 @@
       if (bDa) bDa.textContent = daDuyetList.length;
       if (bCho) bCho.textContent = choDuyetList.length;
 
+      // Chọn danh sách theo tab đang active
+      let targetList = [];
+      if (currentActiveVerticalTab === 'CLB') targetList = clbList;
+      else if (currentActiveVerticalTab === 'DA_DUYET') targetList = daDuyetList;
+      else if (currentActiveVerticalTab === 'CHO_DUYET') targetList = choDuyetList;
+
+      // ÁP DỤNG BỘ LỌC QTV VÀ TÌM KIẾM
+      let finalDisplayList = targetList.filter(item => {
+        // Lọc theo QTV
+        if (selectedQtvFilter === "MY") {
+          if (cleanStr(item.assignedQtv) !== cleanStr(currentAdmin.name)) return false;
+        } else if (selectedQtvFilter !== "ALL") {
+          if (cleanStr(item.assignedQtv) !== cleanStr(selectedQtvFilter)) return false;
+        }
+
+        // Lọc theo ô tìm kiếm Họ tên / MSSV
+        if (searchQuery) {
+          const matchName = normalizeStr(item.hoTen).includes(searchQuery);
+          const matchMssv = normalizeStr(item.mssv).includes(searchQuery);
+          if (!matchName && !matchMssv) return false;
+        }
+
+        return true;
+      });
+
+      // Cập nhật tổng số lượng hiển thị trên badge
       if (totalBadgeEl) {
-        totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
+        totalBadgeEl.textContent = finalDisplayList.length;
       }
 
-      let displayList = [];
-      if (currentActiveVerticalTab === 'CLB') displayList = clbList;
-      else if (currentActiveVerticalTab === 'DA_DUYET') displayList = daDuyetList;
-      else if (currentActiveVerticalTab === 'CHO_DUYET') displayList = choDuyetList;
-
-      renderCardItems(displayList);
+      renderCardItems(finalDisplayList);
     }
 
     // VẼ CÁC THẺ ĐƠN RA GIAO DIỆN THEO TỪNG NHÓM NGÀY (CÓ ĐÁNH SỐ THỨ TỰ 1, 2, 3...)
