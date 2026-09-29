@@ -739,25 +739,49 @@
 
           allPendingRequests = allPendingRequests.filter(r => r.slideId !== processingSlideId);
           
-          let remainingInTab = [];
+          // 1. Cập nhật lại danh sách hiển thị và số lượng trên giao diện trước
+          filterAndRenderCurrentTab();
+
+          // 2. Lấy bộ lọc hiện tại để tìm hồ sơ kế tiếp ĐÚNG THEO BỘ LỌC ĐANG CHỌN
+          const qtvFilterEl = document.getElementById('filterQtvSelect');
+          const searchInputEl = document.getElementById('adminSearchInput');
+          const currentSelectedQtv = qtvFilterEl ? qtvFilterEl.value : "ALL";
+          const currentSearchQuery = searchInputEl ? normalizeStr(searchInputEl.value) : "";
+
+          // Lọc danh sách thô theo tab hiện tại
+          let baseList = [];
           if (currentActiveVerticalTab === 'CLB') {
-            remainingInTab = allPendingRequests.filter(r => r.sourceType === "CLB");
+            baseList = allPendingRequests.filter(r => (r.sourceType || "").toString().toUpperCase() === "CLB");
           } else if (currentActiveVerticalTab === 'DA_DUYET') {
-            remainingInTab = allPendingRequests.filter(r => {
+            baseList = allPendingRequests.filter(r => {
               const st = normalizeStr(r.trangThaiHienTai);
-              return r.sourceType === "GXN" && (st.includes("cho ky") || st.includes("da kiem tra") || st.includes("cho qtv"));
+              return (r.sourceType || "").toString().toUpperCase() === "GXN" && 
+                     (st.includes("cho ky") || st.includes("da kiem tra") || st.includes("cho qtv"));
             });
           } else {
-            remainingInTab = allPendingRequests.filter(r => {
+            baseList = allPendingRequests.filter(r => {
               const st = normalizeStr(r.trangThaiHienTai);
-              return r.sourceType === "GXN" && (st === "cho duyet" || st === "moi khoi tao" || st === "");
+              return (r.sourceType || "").toString().toUpperCase() === "GXN" && 
+                     (st === "cho duyet" || st === "moi khoi tao" || st === "");
             });
           }
 
-          filterAndRenderCurrentTab();
+          // Lọc tiếp theo đúng QTV và từ khóa tìm kiếm đang áp dụng
+          let activeFilteredList = baseList.filter(item => {
+            if (currentSelectedQtv !== "ALL") {
+              if (normalizeStr(item.assignedQtv) !== normalizeStr(currentSelectedQtv)) return false;
+            }
+            if (currentSearchQuery !== "") {
+              const matchName = normalizeStr(item.hoTen).includes(currentSearchQuery);
+              const matchMssv = normalizeStr(item.mssv).includes(currentSearchQuery);
+              if (!matchName && !matchMssv) return false;
+            }
+            return true;
+          });
 
-          if (remainingInTab.length > 0) {
-            selectRequest(remainingInTab[0]);
+          // 3. Tự động mở hồ sơ đầu tiên TRONG DANH SÁCH ĐÃ LỌC
+          if (activeFilteredList.length > 0) {
+            selectRequest(activeFilteredList[0]);
           } else {
             selectedRequest = null;
             document.getElementById('workspaceEmpty').style.display = 'block';
