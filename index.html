@@ -1107,7 +1107,6 @@
               </div>
 
               <!-- Card 4: Quản lý hoạt động -->
-              <!-- Card 4: Quản lý hoạt động (Đã chuẩn hóa giao diện) -->
               <div class="service-item-card card-hd-theme">
                 <div>
                   <div class="card-icon-circle card-icon-orange">🎯</div>
@@ -1497,7 +1496,7 @@
           
           sessionStorage.setItem('loggedAdmin', JSON.stringify({ role: userRole, name: userName }));
           
-          window.location.href = `/gxn.html?mode=admin`;
+          window.location.href = `gxn/gxn.html?mode=admin`;
         } else {
           if (statusEl) statusEl.innerText = "";
           alert("Đăng nhập thất bại: " + (res.error || "Tài khoản hoặc mật khẩu không chính xác!"));
@@ -1530,16 +1529,15 @@
       const token = btoa(validMSSV);
       let targetUrl = "";
 
-      // Đường dẫn gọi trực tiếp vào các thư mục con:
+      // Đường dẫn tương đối chuẩn xác theo cấu trúc thư mục
       if (serviceKey === 'gxn') {
-        targetUrl = `/gxn/gxn.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `gxn/gxn.html?token=${encodeURIComponent(token)}`;
       } else if (serviceKey === 'gcn') {
-        targetUrl = `/gcn/gcn.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `gcn/gcn.html?token=${encodeURIComponent(token)}`;
       } else if (serviceKey === 'hoatdong') {
-        targetUrl = `/hoatdong/hoatdong.html?token=${encodeURIComponent(token)}`;
-      }
+        targetUrl = `hoatdong/hoatdong.html?token=${encodeURIComponent(token)}`;
       } else {
-        targetUrl = `/bieumau/bieumau.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `bieumau/bieumau.html?token=${encodeURIComponent(token)}`;
       }
 
       let sInfo = studentInfoData;
