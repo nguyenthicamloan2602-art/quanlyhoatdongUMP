@@ -1529,15 +1529,15 @@
       const token = btoa(validMSSV);
       let targetUrl = "";
 
-      // DÙNG DẤU GẠCH CHÉO ĐẦU TIÊN ĐỂ VERCEL VÀ SERVER TÌM ĐÚNG THƯ MỤC CON:
+      // GỌI THẲNG TÊN FILE CÙNG CẤP THƯ MỤC GỐC
       if (serviceKey === 'gxn') {
-        targetUrl = `/gxn/gxn.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `gxn.html?token=${encodeURIComponent(token)}`;
       } else if (serviceKey === 'gcn') {
-        targetUrl = `/gcn/gcn.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `gcn.html?token=${encodeURIComponent(token)}`;
       } else if (serviceKey === 'hoatdong') {
-        targetUrl = `/hoatdong/hoatdong.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `hoatdong.html?token=${encodeURIComponent(token)}`;
       } else {
-        targetUrl = `/bieumau/bieumau.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `bieumau.html?token=${encodeURIComponent(token)}`;
       }
 
       let sInfo = studentInfoData;
