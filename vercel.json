@@ -1,21 +1,25 @@
 {
   "cleanUrls": true,
-  "rewrites": [
+  "routes": [
     {
-      "source": "/trang-chu",
-      "destination": "/index.html"
+      "src": "/gxn",
+      "dest": "/gxn/gxn.html"
     },
     {
-      "source": "/gxn",
-      "destination": "/gxn.html"
+      "src": "/gcn",
+      "dest": "/gcn/gcn.html"
     },
     {
-      "source": "/gcn",
-      "destination": "/gcn.html"
+      "src": "/hoatdong",
+      "dest": "/hoatdong/hoatdong.html"
     },
     {
-      "source": "/bieumau",
-      "destination": "/bieumau.html"
+      "src": "/bieumau",
+      "dest": "/bieumau/bieumau.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
