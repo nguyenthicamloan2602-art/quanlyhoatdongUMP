@@ -1496,7 +1496,8 @@
           
           sessionStorage.setItem('loggedAdmin', JSON.stringify({ role: userRole, name: userName }));
           
-          window.location.href = `gxn/gxn.html?mode=admin`;
+          // SỬA DÒNG NÀY: Gọi trực tiếp gxn.html ở thư mục gốc
+          window.location.href = `gxn.html?mode=admin`;
         } else {
           if (statusEl) statusEl.innerText = "";
           alert("Đăng nhập thất bại: " + (res.error || "Tài khoản hoặc mật khẩu không chính xác!"));
