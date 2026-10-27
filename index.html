@@ -50,7 +50,7 @@
 
     /* TỐI ƯU GIAO DIỆN KHI SINH VIÊN ĐĂNG NHẬP */
     .app-card.logged-in {
-      max-width: 1040px;
+      max-width: 1120px;
       min-height: 520px;
       border: 1px solid rgba(255, 255, 255, 0.95);
       box-shadow: 0 25px 50px -12px rgba(2, 132, 199, 0.15), 0 0 0 1px rgba(186, 230, 253, 0.4);
@@ -582,38 +582,42 @@
       margin-top: 2px;
     }
 
+    /* LƯỚI CHIA ĐỀU 4 CỘT CHUẨN ĐẸP */
     .service-card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      margin-bottom: 24px;
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 16px !important;
+      margin-bottom: 24px !important;
+      width: 100% !important;
     }
 
     .service-item-card {
       background: #ffffff;
-      border-radius: 22px;
-      padding: 24px 18px;
+      border-radius: 20px;
+      padding: 22px 14px;
       border: 1.5px solid #f1f5f9;
-      box-shadow: 0 6px 18px -4px rgba(15, 23, 42, 0.04);
-      text-align: center;
+      box-shadow: 0 4px 14px -3px rgba(15, 23, 42, 0.05);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      min-height: 200px;
+      text-align: center;
+      min-height: 215px;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       overflow: hidden;
     }
 
     .service-item-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 30px -8px rgba(2, 132, 199, 0.16);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px -6px rgba(2, 132, 199, 0.14);
     }
 
+    /* THEME BỐN MÀU PASTEL CHUẨN CHO BỐN DỊCH VỤ */
     .card-gcn-theme:hover { border-color: #7dd3fc; }
     .card-gxn-theme:hover { border-color: #86efac; }
     .card-clb-theme:hover { border-color: #d8b4fe; }
+    .card-hd-theme:hover { border-color: #fdba74; }
 
     .card-icon-circle {
       width: 52px;
@@ -623,47 +627,73 @@
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      margin: 0 auto 14px auto;
+      margin: 0 auto 12px auto;
+      transition: transform 0.2s ease;
     }
 
+    .service-item-card:hover .card-icon-circle {
+      transform: scale(1.08);
+    }
+
+    /* MÀU ICON NỀN PASTEL */
     .card-icon-blue { background: #e0f2fe; color: #0284c7; }
     .card-icon-green { background: #dcfce7; color: #16a34a; }
     .card-icon-purple { background: #f3e8ff; color: #9333ea; }
+    .card-icon-orange { background: #ffedd5; color: #ea580c; }
 
     .card-title-main {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
       color: #0f172a;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .card-desc-sub {
-      font-size: 11.5px;
+      font-size: 11px;
       color: #64748b;
-      line-height: 1.45;
-      margin-bottom: 18px;
+      line-height: 1.4;
+      margin-bottom: 14px;
+      min-height: 32px;
       font-weight: 500;
     }
 
     .btn-action-small {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
-      padding: 9px 20px;
-      border-radius: 20px;
+      padding: 8px 14px;
+      border-radius: 18px;
       text-decoration: none;
-      transition: all 0.2s;
-      display: inline-block;
-      width: 80%;
+      width: 100%;
+      display: block;
+      text-align: center;
+      transition: all 0.2s ease;
     }
 
+    /* MÀU NÚT PASTEL ĐỒNG BỘ */
     .btn-action-blue { background: #e0f2fe; color: #0284c7; }
-    .btn-action-blue:hover { background: #0284c7; color: #fff; }
+    .btn-action-blue:hover { background: #0284c7; color: #ffffff; }
 
     .btn-action-green { background: #dcfce7; color: #16a34a; }
-    .btn-action-green:hover { background: #16a34a; color: #fff; }
+    .btn-action-green:hover { background: #16a34a; color: #ffffff; }
 
     .btn-action-purple { background: #f3e8ff; color: #9333ea; }
-    .btn-action-purple:hover { background: #9333ea; color: #fff; }
+    .btn-action-purple:hover { background: #9333ea; color: #ffffff; }
+
+    .btn-action-orange { background: #ffedd5; color: #ea580c; }
+    .btn-action-orange:hover { background: #ea580c; color: #ffffff; }
+
+    /* RESPONSIVE CHO TABLET & MOBILE */
+    @media (max-width: 992px) {
+      .service-card-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+
+    @media (max-width: 580px) {
+      .service-card-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
 
     .support-bar {
       background: #f8fafc;
@@ -807,7 +837,6 @@
 
     @media (max-width: 640px) {
       .stat-cards-compact-grid { grid-template-columns: 1fr; }
-      .service-card-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1046,17 +1075,18 @@
               <p>Chọn dịch vụ cần tra cứu hồ sơ hoặc cấp giấy trực tuyến</p>
             </div>
 
-            <!-- 3 CARD DỊCH VỤ MÀU ĐẶC TRƯNG -->
             <div class="service-card-grid">
+              <!-- Card 1: GCN -->
               <div class="service-item-card card-gcn-theme">
                 <div>
                   <div class="card-icon-circle card-icon-blue">📜</div>
                   <div class="card-title-main">Giấy chứng nhận</div>
-                  <div class="card-desc-sub">Hoạt động Thanh niên khỏe, Sinh viên 5 tốt</div>
+                  <div class="card-desc-sub">Thanh niên khỏe</div>
                 </div>
                 <a class="btn-action-small btn-action-blue" href="#" onclick="goToService(event, 'gcn')">Truy cập ngay →</a>
               </div>
 
+              <!-- Card 2: GXN -->
               <div class="service-item-card card-gxn-theme">
                 <div>
                   <div class="card-icon-circle card-icon-green">📋</div>
@@ -1066,13 +1096,25 @@
                 <a class="btn-action-small btn-action-green" href="#" onclick="goToService(event, 'gxn')">Truy cập ngay →</a>
               </div>
 
+              <!-- Card 3: Tiện ích khác -->
               <div class="service-item-card card-clb-theme">
                 <div>
                   <div class="card-icon-circle card-icon-purple">📂</div>
                   <div class="card-title-main">Tiện ích khác</div>
-                  <div class="card-desc-sub">Hoạt động CLB - Đội - Trung tâm chuyên môn</div>
+                  <div class="card-desc-sub">CLB, Đội, Nhóm & Trung tâm chuyên môn</div>
                 </div>
                 <a class="btn-action-small btn-action-purple" href="#" onclick="goToService(event, 'other')">Truy cập ngay →</a>
+              </div>
+
+              <!-- Card 4: Quản lý hoạt động -->
+              <!-- Card 4: Quản lý hoạt động (Đã chuẩn hóa giao diện) -->
+              <div class="service-item-card card-hd-theme">
+                <div>
+                  <div class="card-icon-circle card-icon-orange">🎯</div>
+                  <div class="card-title-main">Quản lý hoạt động</div>
+                  <div class="card-desc-sub">Hoạt động tham gia &amp; phản hồi</div>
+                </div>
+                <a class="btn-action-small btn-action-orange" href="#" onclick="goToService(event, 'hoatdong')">Truy cập ngay →</a>
               </div>
             </div>
           </div>
@@ -1488,12 +1530,15 @@
       const token = btoa(validMSSV);
       let targetUrl = "";
 
+      // Đường dẫn gọi trực tiếp vào các thư mục con:
       if (serviceKey === 'gxn') {
-        targetUrl = `/gxn.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `/gxn/gxn.html?token=${encodeURIComponent(token)}`;
       } else if (serviceKey === 'gcn') {
-        targetUrl = `/gcn.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `/gcn/gcn.html?token=${encodeURIComponent(token)}`;
+      } else if (serviceKey === 'hoatdong') {
+        targetUrl = `/hoatdong/hoatdong.html?token=${encodeURIComponent(token)}`;
       } else {
-        targetUrl = `/bieumau.html?token=${encodeURIComponent(token)}`;
+        targetUrl = `/bieumau/bieumau.html?token=${encodeURIComponent(token)}`;
       }
 
       let sInfo = studentInfoData;
