@@ -217,14 +217,22 @@
               <!-- KHU VỰC THAO TÁC XỬ LÝ HỒ SƠ & TRÌNH KÝ TRỰC TIẾP -->
               <div id="workspaceDetail" class="w-full h-full flex flex-col space-y-3" style="display: none;">
                 
-                <!-- TIÊU ĐỀ & THANH CÔNG CỤ CHÈN CON DẤU / CHỮ KÝ -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200">
-                  <div class="truncate">
-                    <h3 id="workSvTitle" class="text-sm md:text-base font-extrabold text-slate-900 leading-snug truncate">--</h3>
-                    <p id="workSvMeta" class="text-xs text-slate-500 font-medium truncate mt-0.5">--</p>
+                <!-- HÀNG 1: TÊN THÔNG TIN GIẤY + NÚT MỞ FILE KẾ BÊN + CÔNG CỤ CHỮ KÝ (QTV) -->
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200">
+                  
+                  <!-- Thông tin sinh viên & Nút Mở file nằm kế bên -->
+                  <div class="flex flex-wrap items-center gap-3 min-w-0">
+                    <div class="truncate">
+                      <h3 id="workSvTitle" class="text-sm md:text-base font-extrabold text-slate-900 leading-snug truncate">--</h3>
+                      <p id="workSvMeta" class="text-xs text-slate-500 font-medium truncate mt-0.5">--</p>
+                    </div>
+
+                    <a id="btnOpenSlide" href="#" target="_blank" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-extrabold px-3 py-1.5 rounded-xl text-xs border border-sky-200 shadow-xs inline-flex items-center gap-1.5 shrink-0 transition">
+                      <span>🔗</span> Mở file kiểm tra ↗
+                    </a>
                   </div>
 
-                  <!-- NÚT CHÈN DẤU & CHỮ KÝ -->
+                  <!-- NÚT CHÈN DẤU & CHỮ KÝ (CHỈ HIỆN VỚI QTV) -->
                   <div id="qtvStampToolbar" class="flex items-center gap-2 shrink-0" style="display: none;">
                     <div class="relative">
                       <button onclick="toggleStampDropdown()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95">
@@ -233,8 +241,6 @@
 
                       <!-- POPUP DROPDOWN QUẢN LÝ CHỮ KÝ CÁ NHÂN -->
                       <div id="stampDropdownMenu" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 z-50 text-xs space-y-3.5">
-                        
-                        <!-- Header -->
                         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                           <span class="font-extrabold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
                             <span>🔏</span> Kho chữ ký & Con dấu của bạn
@@ -244,21 +250,16 @@
                           </span>
                         </div>
 
-                        <!-- Danh sách chữ ký cá nhân đã lưu trong hệ thống (localStorage) -->
                         <div class="space-y-1.5">
                           <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Mẫu đã lưu sẵn:</div>
-                          <div id="savedSignaturesContainer" class="max-h-44 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
-                            <!-- Tự động sinh ra từ localStorage -->
-                          </div>
+                          <div id="savedSignaturesContainer" class="max-h-44 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar"></div>
                         </div>
 
-                        <!-- Khu vực Tải lên ảnh mới và lưu lại -->
                         <div class="pt-2.5 border-t border-slate-100 space-y-2">
                           <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wide">➕ Tải lên mẫu chữ ký / con dấu mới:</div>
                           <div class="space-y-2">
                             <input type="text" id="customSigNameInput" placeholder="Nhập tên gọi (VD: Chữ ký số, Dấu mộc...)" 
                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400 font-medium transition" />
-                            
                             <label class="w-full bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-200 text-indigo-700 font-bold py-2.5 px-3 rounded-xl cursor-pointer transition text-xs flex items-center justify-center gap-2">
                               <span>📂</span> Chọn ảnh chữ ký từ máy tính
                               <input type="file" id="sigFileInput" accept="image/*" onchange="handleSaveNewSignature(event)" class="hidden" />
@@ -266,53 +267,44 @@
                           </div>
                           <p class="text-[10px] text-slate-400 italic">Khuyên dùng ảnh định dạng PNG nền trong suốt để khi đóng dấu không đè lấp văn bản.</p>
                         </div>
-
                       </div>
                     </div>
 
-                    <button onclick="clearAllStamps()" type="button" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 border border-rose-200 transition" title="Xóa toàn bộ con dấu đã chèn trên văn bản hiện tại">
+                    <button onclick="clearAllStamps()" type="button" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 border border-rose-200 transition" title="Xóa toàn bộ con dấu đã chèn">
                       <span>🗑️</span> Xóa dấu đã đặt
                     </button>
                   </div>
                 </div>
 
-                <!-- CẢNH BÁO LỊCH SỬ NỘI DUNG (GIỮ NGUYÊN) -->
-                <div id="qtvAuditWarningBox" class="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 space-y-1.5 shadow-sm" style="display: none;">
-                  <div class="font-extrabold text-amber-900 text-[11px] flex items-center gap-1.5 uppercase tracking-wide">
-                    <span>⚠️</span> CẢNH BÁO LỊCH SỬ SỬA ĐỔI NỘI DUNG
+                <!-- HÀNG 2: KHUNG XEM TRƯỚC SLIDE GXN & LỚP PHỦ CON DẤU -->
+                <div class="flex-1 flex flex-col min-h-0 space-y-1.5">
+                  <div id="slideContainerWrapper" class="slide-preview-container relative flex-1">
+                    <iframe id="gxnPreviewIframe" src="" class="w-full h-full border-0 pointer-events-auto"></iframe>
+                    <div id="stampsOverlayLayer" class="absolute inset-0 pointer-events-none"></div>
                   </div>
-                  <div id="qtvAuditLogContent" class="text-xs text-amber-800 font-medium leading-relaxed bg-white/90 p-2.5 rounded-xl border border-amber-100 font-mono">
+
+                  <!-- THANH TRẠNG THÁI CHÈN DẤU (CHỈ HIỆN VỚI QTV) -->
+                  <div id="qtvStampFooterBar" class="flex items-center justify-between text-[11px] text-slate-500 px-1 pt-0.5" style="display: none;">
+                    <span id="stampsCountBadge" class="font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                      Đã chèn: 0 dấu/chữ ký
+                    </span>
+                    <span id="stampDragHint" class="text-slate-400 italic">
+                      💡 Nhấp vào con dấu để kéo thả vị trí hoặc kéo 4 góc để co giãn
+                    </span>
+                  </div>
+                </div>
+
+                <!-- HÀNG 3: CẢNH BÁO LỊCH SỬ CTV SỬA ĐỔI NỘI DUNG (ĐẶT Ở DƯỚI CHO QTV KIỂM TRA) -->
+                <div id="qtvAuditWarningBox" class="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 space-y-1.5 shadow-sm shrink-0" style="display: none;">
+                  <div class="font-extrabold text-amber-900 text-[11px] flex items-center gap-1.5 uppercase tracking-wide">
+                    <span>⚠️</span> CẢNH BÁO LỊCH SỬ CTV SỬA ĐỔI NỘI DUNG (TÊN CHƯƠNG TRÌNH, VAI TRÒ, THỜI GIAN)
+                  </div>
+                  <div id="qtvAuditLogContent" class="text-xs text-amber-800 font-medium leading-relaxed bg-white/90 p-2.5 rounded-xl border border-amber-100 font-mono whitespace-pre-line">
                     --
                   </div>
                 </div>
 
-                <!-- KHUNG XEM TRƯỚC SLIDE GXN THẬT CỦA HỆ THỐNG & CON DẤU KÉO THẢ ĐÈ LÊN -->
-                <div class="flex-1 flex flex-col min-h-0 space-y-1.5">
-                  <div id="slideContainerWrapper" class="slide-preview-container relative flex-1">
-                    
-                    <!-- Nhúng file Google Slides thật tạo bởi Google Apps Script -->
-                    <iframe id="gxnPreviewIframe" src="" class="w-full h-full border-0 pointer-events-auto"></iframe>
-
-                    <!-- Lớp phủ (Overlay Layer) chứa con dấu / chữ ký kéo thả -->
-                    <div id="stampsOverlayLayer" class="absolute inset-0 pointer-events-none"></div>
-
-                  </div>
-
-                  <!-- THANH TIỆN ÍCH DƯỚI BẢN XEM TRƯỚC -->
-                  <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 px-1">
-                    <div class="flex items-center gap-2.5">
-                      <span id="stampsCountBadge" class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200" style="display: none;">
-                        Đã chèn: 0 dấu/chữ ký
-                      </span>
-                      
-                      <a id="btnOpenSlide" href="#" target="_blank" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-extrabold px-3.5 py-1.5 rounded-xl text-xs border border-sky-200 shadow-xs inline-flex items-center gap-1.5 transition">
-                        <span>🔗</span> Mở file kiểm tra ↗
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- NÚT DUYỆT / TỪ CHỐI -->
+                <!-- HÀNG 4: NÚT DUYỆT / TỪ CHỐI -->
                 <div class="pt-1 shrink-0">
                   <!-- CTV -->
                   <div id="ctvActionGroup" class="w-full flex justify-center" style="display: none;">
@@ -338,8 +330,6 @@
                 <div id="adminActionToast" class="text-xs font-semibold text-center min-h-[16px]"></div>
 
               </div>
-
-            </div>
 
           </div>
 
@@ -1112,11 +1102,11 @@
       const warningBox = document.getElementById('qtvAuditWarningBox');
       const warningLog = document.getElementById('qtvAuditLogContent');
       const stampToolbar = document.getElementById('qtvStampToolbar');
-      const stampsCountBadge = document.getElementById('stampsCountBadge');
-      const stampDragHint = document.getElementById('stampDragHint');
+      const stampFooterBar = document.getElementById('qtvStampFooterBar');
 
+      // Chỉ hiện cảnh báo sửa đổi nội dung ở bên dưới khi QTV xem hồ sơ có lịch sử chỉnh sửa từ CTV
       const rawLog = item.ctvNote || item.rawLog || "";
-      if (rawLog !== "" && (rawLog.includes("LỊCH SỬ SỬA ĐỔI") || rawLog.includes("⚠️") || rawLog.includes("Sửa"))) {
+      if (isQtv && rawLog.trim() !== "" && (rawLog.includes("LỊCH SỬ SỬA ĐỔI") || rawLog.includes("⚠️") || rawLog.includes("Sửa") || rawLog.includes("->"))) {
         if (warningBox && warningLog) {
           warningBox.style.display = 'block';
           warningLog.textContent = rawLog;
@@ -1129,14 +1119,12 @@
         ctvGroup.style.display = 'none';
         qtvGroup.style.display = 'grid';
         if (stampToolbar) stampToolbar.style.display = 'flex';
-        if (stampsCountBadge) stampsCountBadge.style.display = 'inline-block';
-        if (stampDragHint) stampDragHint.style.display = 'block';
+        if (stampFooterBar) stampFooterBar.style.display = 'flex';
       } else {
         ctvGroup.style.display = 'flex';
         qtvGroup.style.display = 'none';
         if (stampToolbar) stampToolbar.style.display = 'none';
-        if (stampsCountBadge) stampsCountBadge.style.display = 'none';
-        if (stampDragHint) stampDragHint.style.display = 'none';
+        if (stampFooterBar) stampFooterBar.style.display = 'none';
       }
 
       filterAndRenderCurrentTab();
