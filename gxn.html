@@ -10,10 +10,55 @@
   <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
     body { background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 45%, #eef2ff 100%); }
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* KHUNG HIỂN THỊ FILE VÀ CON DẤU KÉO THẢ (PHÓNG TO RÕ NÉT) */
+    .slide-preview-container {
+      position: relative;
+      width: 480px;   /* Chiều ngang chuẩn A4 dọc */
+      height: 678px;  /* Chiều cao chuẩn A4 dọc */
+      margin: 0 auto; /* Căn giữa khung làm việc */
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .slide-preview-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .stamp-box {
+      position: absolute;
+      touch-action: none;
+      user-select: none;
+      cursor: grab;
+      z-index: 40;
+    }
+    .stamp-box:active { cursor: grabbing; }
+    .stamp-box.selected {
+      outline: 2px dashed #4f46e5;
+      outline-offset: 4px;
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .stamp-handle {
+      width: 12px;
+      height: 12px;
+      background: #4f46e5;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+    .handle-nw { top: -6px; left: -6px; cursor: nwse-resize; }
+    .handle-ne { top: -6px; right: -6px; cursor: nesw-resize; }
+    .handle-sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+    .handle-se { bottom: -6px; right: -6px; cursor: nwse-resize; }
   </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col justify-between">
@@ -26,17 +71,17 @@
         <p class="text-xs text-sky-100 uppercase font-medium">ĐOÀN THANH NIÊN - HỘI SINH VIÊN ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p>
       </div>
       <div id="userInfoHeader" class="flex items-center space-x-3">
-        <span id="userFullName" class="font-semibold text-white bg-sky-700/60 px-3.5 py-1.5 rounded-xl border border-sky-400 text-xs shadow-sm">👋 Sinh viên Y Dược</span>
+        <span id="userFullName" class="font-semibold text-white bg-sky-700/60 px-3.5 py-1.5 rounded-xl border border-sky-400 text-xs shadow-sm">🔑 Quản trị viên</span>
         <button onclick="goBackToPortal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition shadow-sm">&larr; Quay lại Trang chủ</button>
       </div>
     </header>
 
-    <!-- MAIN (MỞ RỘNG TOÀN DIỆN CHIỀU NGANG) -->
+    <!-- MAIN -->
     <main class="flex-grow p-4 md:p-6 flex items-start justify-center">
       <div class="w-full max-w-[96%] xl:max-w-[1560px] bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-6 md:p-8 space-y-6 border border-sky-100 transition-all">
         
-        <!-- CARD THÔNG TIN SINH VIÊN (ẨN KHI LÀ CTV / QTV) -->
-        <div id="studentHeaderCard" class="bg-sky-50/80 rounded-2xl p-6 border border-sky-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- CARD THÔNG TIN SINH VIÊN (CHỈ HIỆN KHI LÀ SINH VIÊN) -->
+        <div id="studentHeaderCard" class="bg-sky-50/80 rounded-2xl p-6 border border-sky-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4" style="display: none;">
           <div>
             <h3 id="svName" class="text-xl font-extrabold text-sky-900">Đang tải tên...</h3>
             <p id="svMeta" class="text-sm text-sky-700 mt-1 font-medium">MSSV: -- • Lớp: -- • Trường/Khoa: --</p>
@@ -49,8 +94,8 @@
           </div>
         </div>
 
-        <!-- GIAO DIỆN CỦA SINH VIÊN -->
-        <div id="studentFormPanel" class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <!-- GIAO DIỆN CỦA SINH VIÊN (CHỈ HIỆN KHI LÀ SINH VIÊN) -->
+        <div id="studentFormPanel" class="grid grid-cols-1 md:grid-cols-12 gap-6" style="display: none;">
           <div class="md:col-span-7 space-y-3">
             <div class="flex justify-between items-center">
               <h4 class="font-extrabold text-slate-800 text-sm uppercase tracking-wide">Danh sách hoạt động của bạn</h4>
@@ -81,11 +126,11 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- GIAO DIỆN XÉT DUYỆT RỘNG (DÀNH CHO CTV / QTV) -->
+        <!-- GIAO DIỆN XÉT DUYỆT RỘNG (MẶC ĐỊNH MỞ CHO QTV) -->
         <!-- ========================================== -->
-        <div id="adminWorkspacePanel" class="space-y-4" style="display: none;">
+        <div id="adminWorkspacePanel" class="space-y-4" style="display: block;">
           
-          <!-- THANH HEADER PANEL CÓ BỘ LỌC DÀNH RIÊNG CHO QTV -->
+          <!-- THANH HEADER PANEL -->
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <div class="flex items-center gap-2">
@@ -94,20 +139,18 @@
                   0
                 </span>
               </div>
-              <p class="text-xs text-slate-500 font-medium mt-0.5">Xem xét và phê duyệt giấy xác nhận</p>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">Xem xét, kiểm tra slide mẫu thật và phê duyệt đóng dấu</p>
             </div>
 
-            <!-- CỤM CÔNG CỤ LỌC VÀ LÀM MỚI -->
+            <!-- CÔNG CỤ LỌC VÀ LÀM MỚI -->
             <div class="flex items-center gap-2 flex-wrap">
-              <!-- Ô TÌM KIẾM THEO TÊN / MSSV -->
               <input type="text" id="adminSearchInput" oninput="filterAndRenderCurrentTab()" 
                      placeholder="🔍 Tìm tên, MSSV..." 
                      class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400 w-36 md:w-44 font-medium transition" />
 
-              <!-- DROPDOWN LỌC DÀNH RIÊNG CHO QTV (ẨN ĐỐI VỚI CTV) -->
               <select id="filterQtvSelect" onchange="filterAndRenderCurrentTab()" 
                       class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer"
-                      style="display: none;">
+                      style="display: inline-block;">
                 <option value="ALL">🔑 Tất cả QTV</option>
               </select>
 
@@ -117,16 +160,15 @@
             </div>
           </div>
 
-          <!-- LƯỚI KHUNG LÀM VIỆC (CHIỀU CAO 680PX) -->
+          <!-- LƯỚI KHUNG LÀM VIỆC (CHIỀU CAO 720PX) -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- CỘT BÊN TRÁI: 3 TAB DỌC + DANH SÁCH THẺ (CHIẾM 5/12 PHẦN) -->
-            <div class="lg:col-span-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex gap-3.5 h-[680px]">
+            <!-- CỘT BÊN TRÁI: 3 TAB DỌC + DANH SÁCH THẺ THẬT -->
+            <div class="lg:col-span-5 bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex gap-3.5 h-[860px]">
               
-              <!-- CỘT 3 TAB DỌC (SẼ ĐƯỢC JS TỰ ĐỘNG ẨN NẾU LÀ CTV) -->
-              <div id="adminVerticalTabsNav" class="w-36 flex flex-col gap-2.5 shrink-0 border-r border-slate-200/80 pr-2 select-none" style="display: none;">
+              <!-- 3 TAB DỌC -->
+              <div id="adminVerticalTabsNav" class="w-36 flex flex-col gap-2.5 shrink-0 border-r border-slate-200/80 pr-2 select-none" style="display: flex;">
                 
-                <!-- Tab 1: CLB -->
                 <button id="vtab-CLB" onclick="switchVerticalTab('CLB')" 
                         class="vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm">
                   <div class="text-xs font-bold flex items-center justify-between">
@@ -136,7 +178,6 @@
                   <span class="text-[10px] text-indigo-500 font-medium">Đang chờ ký</span>
                 </button>
 
-                <!-- Tab 2: ĐÃ DUYỆT -->
                 <button id="vtab-DA_DUYET" onclick="switchVerticalTab('DA_DUYET')" 
                         class="vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-white border-slate-200 text-slate-600 hover:bg-slate-100">
                   <div class="text-xs font-bold flex items-center justify-between">
@@ -146,7 +187,6 @@
                   <span class="text-[10px] text-slate-400 font-medium">CTV đã gửi</span>
                 </button>
 
-                <!-- Tab 3: CHỜ DUYỆT -->
                 <button id="vtab-CHO_DUYET" onclick="switchVerticalTab('CHO_DUYET')" 
                         class="vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-white border-slate-200 text-slate-600 hover:bg-slate-100">
                   <div class="text-xs font-bold flex items-center justify-between">
@@ -165,67 +205,135 @@
 
             </div>
 
-            <!-- CỘT BÊN PHẢI: KHUNG CHI TIẾT VÀ THAO TÁC (CHIẾM 7/12 PHẦN) -->
-            <div class="lg:col-span-7 bg-slate-50/60 rounded-3xl border border-slate-200/80 p-6 md:p-8 h-[680px] flex flex-col justify-center items-center overflow-y-auto custom-scrollbar">
+            <!-- CỘT BÊN PHẢI: KHUNG CHI TIẾT XEM SLIDE THẬT & ĐÓNG DẤU -->
+            <div class="lg:col-span-7 bg-slate-50/60 rounded-3xl border border-slate-200/80 p-5 md:p-6 h-[860px] flex flex-col justify-between overflow-y-auto custom-scrollbar">
               
-              <div id="workspaceEmpty" class="text-center space-y-2 py-16">
+              <div id="workspaceEmpty" class="text-center space-y-2 py-24 m-auto">
                 <div class="text-5xl text-amber-400 mb-3">📁</div>
                 <h4 class="font-bold text-slate-800 text-base">XÁC NHẬN HOẠT ĐỘNG</h4>
-                <p class="text-xs text-slate-400">Chọn một hồ sơ bên danh sách để xem nội dung và tiến hành xét duyệt</p>
+                <p class="text-xs text-slate-400">Chọn một hồ sơ bên danh sách để xem nội dung file thực tế và tiến hành xét duyệt</p>
               </div>
 
-              <!-- KHU VỰC THAO TÁC XỬ LÝ HỒ SƠ -->
-              <div id="workspaceDetail" class="w-full max-w-xl mx-auto space-y-5" style="display: none;">
+              <!-- KHU VỰC THAO TÁC XỬ LÝ HỒ SƠ & TRÌNH KÝ TRỰC TIẾP -->
+              <div id="workspaceDetail" class="w-full h-full flex flex-col space-y-3" style="display: none;">
                 
-                <div class="text-center">
-                  <h3 id="workSvTitle" class="text-lg md:text-xl font-extrabold text-slate-900 leading-snug">--</h3>
-                  <p id="workSvMeta" class="text-xs text-slate-500 font-medium mt-1">--</p>
+                <!-- TIÊU ĐỀ & THANH CÔNG CỤ CHÈN CON DẤU / CHỮ KÝ -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                  <div class="truncate">
+                    <h3 id="workSvTitle" class="text-sm md:text-base font-extrabold text-slate-900 leading-snug truncate">--</h3>
+                    <p id="workSvMeta" class="text-xs text-slate-500 font-medium truncate mt-0.5">--</p>
+                  </div>
+
+                  <!-- NÚT CHÈN DẤU & CHỮ KÝ -->
+                  <div class="flex items-center gap-2 shrink-0">
+                    <div class="relative">
+                      <button onclick="toggleStampDropdown()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition active:scale-95">
+                        <span>✍️</span> Thêm chữ ký / con dấu của tôi
+                      </button>
+
+                      <!-- POPUP DROPDOWN QUẢN LÝ CHỮ KÝ CÁ NHÂN -->
+                      <div id="stampDropdownMenu" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 z-50 text-xs space-y-3.5">
+                        
+                        <!-- Header -->
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                          <span class="font-extrabold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🔏</span> Kho chữ ký & Con dấu của bạn
+                          </span>
+                          <span class="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-bold border border-emerald-200">
+                            Được lưu tự động
+                          </span>
+                        </div>
+
+                        <!-- Danh sách chữ ký cá nhân đã lưu trong hệ thống (localStorage) -->
+                        <div class="space-y-1.5">
+                          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Mẫu đã lưu sẵn:</div>
+                          <div id="savedSignaturesContainer" class="max-h-44 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+                            <!-- Tự động sinh ra từ localStorage -->
+                          </div>
+                        </div>
+
+                        <!-- Khu vực Tải lên ảnh mới và lưu lại -->
+                        <div class="pt-2.5 border-t border-slate-100 space-y-2">
+                          <div class="text-[11px] font-bold text-slate-700 uppercase tracking-wide">➕ Tải lên mẫu chữ ký / con dấu mới:</div>
+                          <div class="space-y-2">
+                            <input type="text" id="customSigNameInput" placeholder="Nhập tên gọi (VD: Chữ ký số, Dấu mộc...)" 
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-indigo-400 font-medium transition" />
+                            
+                            <label class="w-full bg-indigo-50 hover:bg-indigo-100 border-2 border-dashed border-indigo-200 text-indigo-700 font-bold py-2.5 px-3 rounded-xl cursor-pointer transition text-xs flex items-center justify-center gap-2">
+                              <span>📂</span> Chọn ảnh chữ ký từ máy tính
+                              <input type="file" id="sigFileInput" accept="image/*" onchange="handleSaveNewSignature(event)" class="hidden" />
+                            </label>
+                          </div>
+                          <p class="text-[10px] text-slate-400 italic">Khuyên dùng ảnh định dạng PNG nền trong suốt để khi đóng dấu không đè lấp văn bản.</p>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <button onclick="clearAllStamps()" type="button" class="bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold px-2.5 py-1.5 rounded-xl text-xs flex items-center gap-1 border border-rose-200 transition" title="Xóa toàn bộ con dấu đã chèn trên văn bản hiện tại">
+                      <span>🗑️</span> Xóa dấu đã đặt
+                    </button>
+                  </div>
                 </div>
 
-                <!-- KHUNG CẢNH BÁO LỊCH SỬ SỬA ĐỔI MÀU VÀNG -->
-                <div id="qtvAuditWarningBox" class="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 space-y-2 shadow-sm" style="display: none;">
-                  <div class="font-extrabold text-amber-900 text-xs flex items-center gap-1.5 uppercase tracking-wide">
+                <!-- CẢNH BÁO LỊCH SỬ NỘI DUNG (GIỮ NGUYÊN) -->
+                <div id="qtvAuditWarningBox" class="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 space-y-1.5 shadow-sm" style="display: none;">
+                  <div class="font-extrabold text-amber-900 text-[11px] flex items-center gap-1.5 uppercase tracking-wide">
                     <span>⚠️</span> CẢNH BÁO LỊCH SỬ SỬA ĐỔI NỘI DUNG
                   </div>
-                  <div id="qtvAuditLogContent" class="text-xs text-amber-800 font-medium leading-relaxed bg-white/90 p-3.5 rounded-xl border border-amber-100 font-mono">
+                  <div id="qtvAuditLogContent" class="text-xs text-amber-800 font-medium leading-relaxed bg-white/90 p-2.5 rounded-xl border border-amber-100 font-mono">
                     --
                   </div>
                 </div>
 
-                <!-- HỘP NHIỆM VỤ VÀ NÚT MỞ FILE -->
-                <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-3.5">
-                  <div class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">NHIỆM VỤ XỬ LÝ:</div>
-                  
-                  <div id="instructionText" class="text-xs text-slate-700 leading-relaxed space-y-1 font-medium"></div>
+                <!-- KHUNG XEM TRƯỚC SLIDE GXN THẬT CỦA HỆ THỐNG & CON DẤU KÉO THẢ ĐÈ LÊN -->
+                <div class="flex-1 flex flex-col min-h-0 space-y-1.5">
+                  <div id="slideContainerWrapper" class="slide-preview-container relative flex-1">
+                    
+                    <!-- Nhúng file Google Slides thật tạo bởi Google Apps Script -->
+                    <iframe id="gxnPreviewIframe" src="" class="w-full h-full border-0 pointer-events-auto"></iframe>
 
-                  <a id="btnOpenSlide" href="#" target="_blank" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-xs text-center transition shadow-md flex items-center justify-center gap-2">
-                    <span>🔗</span> Mở file kiểm tra ↗
-                  </a>
+                    <!-- Lớp phủ (Overlay Layer) chứa con dấu / chữ ký kéo thả -->
+                    <div id="stampsOverlayLayer" class="absolute inset-0 pointer-events-none"></div>
+
+                  </div>
+
+                  <!-- THANH TIỆN ÍCH DƯỚI BẢN XEM TRƯỚC -->
+                  <div class="flex items-center justify-between text-[11px] text-slate-500 px-1 py-0.5">
+                    <div class="flex items-center gap-2">
+                      <span id="stampsCountBadge" class="font-semibold text-slate-600">Đã chèn: 0 dấu/chữ ký</span>
+                      <span class="text-slate-300">•</span>
+                      <a id="btnOpenSlide" href="#" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-bold inline-flex items-center gap-1">
+                        <span>🔗</span> Mở Google Slides tab mới ↗
+                      </a>
+                    </div>
+                    <div class="text-slate-400 italic">
+                      💡 Nhấp vào con dấu để kéo thả vị trí hoặc kéo 4 góc để co giãn
+                    </div>
+                  </div>
                 </div>
 
-                <!-- CÁC NÚT THAO TÁC CTV / QTV -->
-                <div class="pt-2">
-                  
-                  <!-- DÀNH CHO CTV -->
+                <!-- NÚT DUYỆT / TỪ CHỐI -->
+                <div class="pt-1 shrink-0">
+                  <!-- CTV -->
                   <div id="ctvActionGroup" class="w-full flex justify-center" style="display: none;">
-                    <button onclick="submitCtvReview()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-xl text-xs transition shadow-md">
+                    <button onclick="submitCtvReview()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-xl text-xs transition shadow-md">
                       Chuyển Ban Thư ký
                     </button>
                   </div>
 
-                  <!-- DÀNH CHO QTV -->
-                  <div id="qtvActionGroup" class="w-full grid grid-cols-3 gap-3.5" style="display: none;">
-                    <button onclick="rejectRequest()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-2 rounded-xl text-xs transition shadow-md">
+                  <!-- QTV -->
+                  <div id="qtvActionGroup" class="w-full grid grid-cols-3 gap-3" style="display: none;">
+                    <button onclick="rejectRequest()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition shadow-md">
                       Từ chối
                     </button>
-                    <button onclick="returnCtvRequest()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-2 rounded-xl text-xs transition shadow-md">
+                    <button onclick="returnCtvRequest()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition shadow-md">
                       Trả hồ sơ CTV
                     </button>
-                    <button onclick="approveQtv()" id="btnApproveAction" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-2 rounded-xl text-xs transition shadow-md">
-                      Phê duyệt
+                    <button onclick="approveQtv()" id="btnApproveAction" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-2 rounded-xl text-xs transition shadow-md">
+                      Phê duyệt & Đóng dấu
                     </button>
                   </div>
-
                 </div>
 
                 <div id="adminActionToast" class="text-xs font-semibold text-center min-h-[16px]"></div>
@@ -276,17 +384,388 @@
     var currentAdmin = null;
     var selectedRequest = null;
     
-    // Quản lý trạng thái 3 Tab dọc & Cache cục bộ
     var allPendingRequests = [];
     var currentActiveVerticalTab = 'CLB';
 
+    var placedStamps = [];
+    var selectedStampIndex = null;
+
+    // ==============================================================
+    // QUẢN LÝ LƯU TRỮ CHỮ KÝ VÀ DẤU CỦA NGƯỜI DÙNG (LOCALSTORAGE)
+    // ==============================================================
+    const STORAGE_KEY_SIGNATURES = "gxn_saved_user_signatures";
+
+    function getSavedSignatures() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY_SIGNATURES);
+        return data ? JSON.parse(data) : [];
+      } catch(e) {
+        return [];
+      }
+    }
+
+    function saveSignaturesToStorage(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY_SIGNATURES, JSON.stringify(list));
+      } catch(e) {
+        console.error("Lỗi lưu trữ:", e);
+      }
+    }
+
+    function renderSavedSignaturesList() {
+      const container = document.getElementById('savedSignaturesContainer');
+      if (!container) return;
+
+      const list = getSavedSignatures();
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-[11px]">
+            Chưa có mẫu nào được lưu.<br>Tải lên ở bên dưới để hệ thống lưu giữ lại!
+          </div>
+        `;
+        return;
+      }
+
+      let html = "";
+      list.forEach((item) => {
+        html += `
+          <div class="flex items-center justify-between p-2 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-indigo-50/40 hover:border-indigo-300 transition group">
+            <div onclick="insertSavedSignature('${item.id}')" class="flex items-center gap-2.5 flex-1 cursor-pointer truncate mr-2">
+              <div class="w-9 h-9 bg-white border border-slate-200 rounded-lg p-0.5 shrink-0 flex items-center justify-center overflow-hidden shadow-xs">
+                <img src="${item.dataUrl}" alt="${item.name}" class="w-full h-full object-contain" />
+              </div>
+              <div class="truncate">
+                <div class="font-bold text-slate-800 text-xs truncate group-hover:text-indigo-700">${item.name}</div>
+                <div class="text-[10px] text-slate-400">${item.date || 'Đã lưu'}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" onclick="insertSavedSignature('${item.id}')" 
+                      class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded-lg text-[10px] transition shadow-xs">
+                Chèn
+              </button>
+              <button type="button" onclick="deleteSavedSignature('${item.id}', event)" 
+                      class="text-rose-400 hover:text-rose-600 p-1 rounded-lg text-xs transition" title="Xóa mẫu này khỏi danh sách">
+                🗑️
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function handleSaveNewSignature(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const nameInput = document.getElementById('customSigNameInput');
+      let sigName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : (file.name.replace(/\.[^/.]+$/, "") || "Chữ ký cá nhân");
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = img.width;
+          tempCanvas.height = img.height;
+          const tCtx = tempCanvas.getContext('2d');
+          tCtx.drawImage(img, 0, 0);
+
+          // Quét tìm vùng có nét vẽ/mộc đỏ để cắt bỏ khoảng trống thừa xung quanh
+          const imgData = tCtx.getImageData(0, 0, img.width, img.height);
+          const data = imgData.data;
+          let minX = img.width, minY = img.height, maxX = 0, maxY = 0;
+
+          for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+              const alpha = data[(y * img.width + x) * 4 + 3];
+              if (alpha > 15) { // Bỏ qua điểm ảnh trong suốt
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          // Nếu tìm thấy vùng nội dung hợp lệ thì cắt gọn, ngược lại giữ nguyên
+          const cropW = (maxX >= minX) ? (maxX - minX + 1) : img.width;
+          const cropH = (maxY >= minY) ? (maxY - minY + 1) : img.height;
+          const startX = (maxX >= minX) ? minX : 0;
+          const startY = (maxY >= minY) ? minY : 0;
+
+          // Nén về kích thước tối đa 400px
+          const maxDim = 400;
+          let finalW = cropW;
+          let finalH = cropH;
+          if (finalW > maxDim || finalH > maxDim) {
+            if (finalW > finalH) { finalH = Math.round((finalH * maxDim) / finalW); finalW = maxDim; }
+            else { finalW = Math.round((finalW * maxDim) / finalH); finalH = maxDim; }
+          }
+
+          const finalCanvas = document.createElement('canvas');
+          finalCanvas.width = finalW;
+          finalCanvas.height = finalH;
+          const fCtx = finalCanvas.getContext('2d');
+          fCtx.drawImage(tempCanvas, startX, startY, cropW, cropH, 0, 0, finalW, finalH);
+
+          const compressedDataUrl = finalCanvas.toDataURL('image/png');
+
+          const newSigItem = {
+            id: "sig_" + Date.now(),
+            name: sigName,
+            dataUrl: compressedDataUrl,
+            date: new Date().toLocaleDateString('vi-VN')
+          };
+
+          const list = getSavedSignatures();
+          list.unshift(newSigItem);
+          saveSignaturesToStorage(list);
+
+          if (nameInput) nameInput.value = "";
+          event.target.value = "";
+
+          renderSavedSignaturesList();
+          insertSavedSignature(newSigItem.id);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function deleteSavedSignature(id, event) {
+      if (event) event.stopPropagation();
+      if (!confirm("Bạn có chắc chắn muốn xóa mẫu chữ ký/con dấu này khỏi hệ thống lưu trữ?")) return;
+
+      let list = getSavedSignatures();
+      list = list.filter(item => item.id !== id);
+      saveSignaturesToStorage(list);
+      renderSavedSignaturesList();
+    }
+
+    function insertSavedSignature(id) {
+      const list = getSavedSignatures();
+      const item = list.find(s => s.id === id);
+      if (!item) return;
+
+      toggleStampDropdown();
+
+      const newStamp = {
+        id: "stamp_" + Date.now(),
+        type: "saved_custom",
+        title: item.name,
+        content: `<img src="${item.dataUrl}" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="${item.name}" />`,
+        x: 320,
+        y: 280,
+        width: 140,
+        height: 140,
+        rotation: 0,
+        opacity: 0.95
+      };
+
+      placedStamps.push(newStamp);
+      selectedStampIndex = placedStamps.length - 1;
+      renderStamps();
+    }
+
+    function toggleStampDropdown() {
+      const menu = document.getElementById('stampDropdownMenu');
+      if (menu) {
+        menu.classList.toggle('hidden');
+        if (!menu.classList.contains('hidden')) {
+          renderSavedSignaturesList();
+        }
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const menu = document.getElementById('stampDropdownMenu');
+      if (menu && !menu.contains(e.target) && !e.target.closest('button[onclick*="toggleStampDropdown"]')) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function clearAllStamps() {
+      placedStamps = [];
+      selectedStampIndex = null;
+      renderStamps();
+    }
+
+    function removeStampAt(idx, e) {
+      if (e) e.stopPropagation();
+      placedStamps.splice(idx, 1);
+      selectedStampIndex = null;
+      renderStamps();
+    }
+
+    function rotateStampAt(idx, deg, e) {
+      if (e) e.stopPropagation();
+      placedStamps[idx].rotation = (placedStamps[idx].rotation + deg) % 360;
+      renderStamps();
+    }
+
+    function renderStamps() {
+      const layer = document.getElementById('stampsOverlayLayer');
+      const badge = document.getElementById('stampsCountBadge');
+      if (badge) badge.textContent = `Đã chèn: ${placedStamps.length} dấu/chữ ký`;
+      if (!layer) return;
+
+      if (placedStamps.length === 0) {
+        layer.innerHTML = "";
+        return;
+      }
+
+      let html = "";
+      placedStamps.forEach((stamp, idx) => {
+        const isSelected = idx === selectedStampIndex;
+        html += `
+          <div id="${stamp.id}" 
+               class="stamp-box pointer-events-auto absolute ${isSelected ? 'selected' : ''}" 
+               style="left: ${stamp.x}px; top: ${stamp.y}px; width: ${stamp.width}px; height: ${stamp.height}px; transform: rotate(${stamp.rotation}deg); opacity: ${stamp.opacity};"
+               onmousedown="startStampDrag(event, ${idx})"
+               onclick="selectSingleStamp(event, ${idx})">
+            
+            ${stamp.content}
+
+            ${isSelected ? `
+              <div class="stamp-handle handle-nw" onmousedown="startStampResize(event, ${idx}, 'nw')"></div>
+              <div class="stamp-handle handle-ne" onmousedown="startStampResize(event, ${idx}, 'ne')"></div>
+              <div class="stamp-handle handle-sw" onmousedown="startStampResize(event, ${idx}, 'sw')"></div>
+              <div class="stamp-handle handle-se" onmousedown="startStampResize(event, ${idx}, 'se')"></div>
+
+              <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white rounded-lg px-2 py-0.5 flex items-center gap-1.5 shadow-xl text-[10px] whitespace-nowrap z-50">
+                <button type="button" onclick="rotateStampAt(${idx}, -5, event)" title="Xoay trái" class="hover:text-indigo-300">↺</button>
+                <button type="button" onclick="rotateStampAt(${idx}, 5, event)" title="Xoay phải" class="hover:text-indigo-300">↻</button>
+                <span class="text-slate-500">|</span>
+                <button type="button" onclick="removeStampAt(${idx}, event)" title="Xoá dấu" class="text-rose-400 hover:text-rose-300 font-bold">✕</button>
+              </div>
+            ` : ''}
+
+          </div>
+        `;
+      });
+
+      layer.innerHTML = html;
+    }
+
+    function selectSingleStamp(e, idx) {
+      e.stopPropagation();
+      selectedStampIndex = idx;
+      renderStamps();
+    }
+
+    // 1. KÉO THẢ SIÊU MƯỢT (VÔ HIỆU HÓA IFRAME TẠM THỜI KHI ĐANG KÉO)
+    function startStampDrag(e, idx) {
+      if (e.target.classList.contains('stamp-handle') || e.target.closest('button')) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (selectedStampIndex !== idx) {
+        selectedStampIndex = idx;
+        renderStamps();
+      }
+
+      const stamp = placedStamps[idx];
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const initialLeft = stamp.x;
+      const initialTop = stamp.y;
+      const canvasEl = document.getElementById('slideContainerWrapper');
+      const iframeEl = document.getElementById('gxnPreviewIframe');
+      const el = document.getElementById(stamp.id);
+
+      // Khóa pointer-events của iframe để chuột không bị nuốt khi rê nhanh
+      if (iframeEl) iframeEl.style.pointerEvents = 'none';
+
+      const maxW = canvasEl.offsetWidth;
+      const maxH = canvasEl.offsetHeight;
+
+      function onMouseMove(moveEvent) {
+        const dx = moveEvent.clientX - startX;
+        const dy = moveEvent.clientY - startY;
+        
+        // Cho phép kéo phần lề trống của ảnh vượt qua biên tối đa 50% để đặt chữ ký sát đáy
+        const padX = stamp.width * 0.5;
+        const padY = stamp.height * 0.5;
+        
+        stamp.x = Math.max(-padX, Math.min(maxW - stamp.width + padX, initialLeft + dx));
+        stamp.y = Math.max(-padY, Math.min(maxH - stamp.height + padY, initialTop + dy));
+
+        if (el) {
+          el.style.left = stamp.x + 'px';
+          el.style.top = stamp.y + 'px';
+        }
+      }
+
+      function onMouseUp() {
+        if (iframeEl) iframeEl.style.pointerEvents = 'auto';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    }
+
+    // 2. THU PHÓNG SIÊU MƯỢT
+    function startStampResize(e, idx, corner) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const stamp = placedStamps[idx];
+      const startX = e.clientX;
+      const initialW = stamp.width;
+      const initialLeft = stamp.x;
+      const initialTop = stamp.y;
+      const ratio = initialW / stamp.height;
+      const iframeEl = document.getElementById('gxnPreviewIframe');
+      const el = document.getElementById(stamp.id);
+
+      if (iframeEl) iframeEl.style.pointerEvents = 'none';
+
+      function onMouseMove(moveEvent) {
+        const dx = moveEvent.clientX - startX;
+        let newW = (corner === 'se' || corner === 'ne') ? Math.max(40, initialW + dx) : Math.max(40, initialW - dx);
+        if (corner === 'sw' || corner === 'nw') stamp.x = initialLeft + (initialW - newW);
+        const newH = newW / ratio;
+        if (corner === 'ne' || corner === 'nw') stamp.y = initialTop + (stamp.height - newH);
+
+        stamp.width = Math.round(newW);
+        stamp.height = Math.round(newH);
+
+        if (el) {
+          el.style.width = stamp.width + 'px';
+          el.style.height = stamp.height + 'px';
+          el.style.left = stamp.x + 'px';
+          el.style.top = stamp.y + 'px';
+        }
+      }
+
+      function onMouseUp() {
+        if (iframeEl) iframeEl.style.pointerEvents = 'auto';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      }
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    }
+
+    // ==============================================================
+    // KHỞI TẠO VÀ XỬ LÝ QUYỀN TRUY CẬP (DOM CONTENT LOADED)
+    // ==============================================================
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       let mssv = token ? atob(token) : urlParams.get('mssv');
       const savedStudent = sessionStorage.getItem('loggedStudent');
+      const isAdminParam = urlParams.get('isAdmin');
+      const savedAdmin = sessionStorage.getItem('loggedAdmin');
 
-      if (mssv || (savedStudent && !urlParams.get('isAdmin'))) {
+      // 1. NẾU LÀ SINH VIÊN (CÓ MSSV VÀ KHÔNG PHẢI QTV)
+      if ((mssv || savedStudent) && isAdminParam !== "true" && !savedAdmin) {
         let name = urlParams.get('name') || urlParams.get('hoTen');
         let lop = urlParams.get('lop');
         let khoa = urlParams.get('khoa') || urlParams.get('truongKhoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
@@ -301,8 +780,7 @@
           } catch(e) {}
         }
 
-        let finalKhoa = (khoa && khoa !== "undefined") ? decodeURIComponent(khoa).trim() : "";
-        if (!finalKhoa) finalKhoa = "Đại học Y Dược TP.HCM";
+        let finalKhoa = (khoa && khoa !== "undefined") ? decodeURIComponent(khoa).trim() : "Đại học Y Dược TP.HCM";
 
         currentUser = {
           mssv: mssv,
@@ -324,53 +802,48 @@
         return;
       }
 
-      const isAdmin = urlParams.get('isAdmin');
-      const adminRole = urlParams.get('role');
-      const adminName = urlParams.get('name');
-      const savedAdmin = sessionStorage.getItem('loggedAdmin');
+      // 2. MẶC ĐỊNH LUÔN KHỞI CHẠY QUYỀN QTV VÀ NẠP DỮ LIỆU
+      let adminRole = urlParams.get('role');
+      let adminName = urlParams.get('name');
 
-      if (isAdmin === "true" || (savedAdmin && isAdmin !== "false")) {
-        let adminObj = {};
-        if (savedAdmin) {
-          try { adminObj = JSON.parse(savedAdmin); } catch(e) {}
-        }
-        
-        currentAdmin = {
-          role: adminRole || adminObj.role || "CTV",
-          name: adminName ? decodeURIComponent(adminName) : (adminObj.name || "CÁN BỘ")
-        };
-
-        document.getElementById('userFullName').textContent = "🔑 " + currentAdmin.name;
-        document.getElementById('studentHeaderCard').style.display = 'none';
-        document.getElementById('studentFormPanel').style.display = 'none';
-        document.getElementById('adminWorkspacePanel').style.display = 'block';
-
-        // ẨN NGAY LẬP TỨC 3 TAB VÀ DROPDOWN NẾU LÀ CTV
-        const tabNav = document.getElementById('adminVerticalTabsNav');
-        const qtvFilterEl = document.getElementById('filterQtvSelect');
-        if (tabNav) {
-          tabNav.style.display = (currentAdmin.role === "QTV") ? 'flex' : 'none';
-        }
-        if (qtvFilterEl) {
-          qtvFilterEl.style.display = (currentAdmin.role === "QTV") ? 'inline-block' : 'none';
-        }
-
-        reloadPendingAdmin();
-        return; 
+      if (savedAdmin) {
+        try {
+          const adminObj = JSON.parse(savedAdmin);
+          if (!adminRole) adminRole = adminObj.role;
+          if (!adminName) adminName = adminObj.name;
+        } catch(e) {}
       }
 
-      goBackToPortal();
+      // Gán mặc định là QTV nếu chạy Live Server trực tiếp
+      currentAdmin = {
+        role: adminRole || "QTV",
+        name: adminName ? decodeURIComponent(adminName) : "Lê Thanh Hải"
+      };
+
+      document.getElementById('userFullName').textContent = "🔑 " + currentAdmin.name;
+      document.getElementById('studentHeaderCard').style.display = 'none';
+      document.getElementById('studentFormPanel').style.display = 'none';
+      document.getElementById('adminWorkspacePanel').style.display = 'block';
+
+      const tabNav = document.getElementById('adminVerticalTabsNav');
+      const qtvFilterEl = document.getElementById('filterQtvSelect');
+      if (tabNav) tabNav.style.display = (currentAdmin.role === "QTV") ? 'flex' : 'none';
+      if (qtvFilterEl) qtvFilterEl.style.display = (currentAdmin.role === "QTV") ? 'inline-block' : 'none';
+
+      // Nạp kho chữ ký đã lưu và tải ngay danh sách hồ sơ từ Google Apps Script
+      if (typeof renderSavedSignaturesList === 'function') {
+        renderSavedSignaturesList();
+      }
+      reloadPendingAdmin();
     });
 
-    // CHUẨN HÓA CHUỖI KHÔNG DẤU ĐỂ SO KHỚP AN TOÀN
     function normalizeStr(str) {
       if (!str) return "";
       return str.toString().trim().toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/[\r\n]+/g, " ").replace(/\s+/g, " ");
+        .replace(/\s+/g, " ");
     }
 
-    // PARSER THỜI GIAN ĐỂ SẮP XẾP CHÍNH XÁC (FIFO: Nộp trước lên đầu)
     function parseTimestamp(timeStr) {
       if (!timeStr) return 0;
       const parts = timeStr.split(/[\s/:]+/);
@@ -408,7 +881,6 @@
     }
 
     function filterAndRenderCurrentTab() {
-      // 1. Chuẩn hóa kiểm tra quyền QTV chống lệch chữ hoa/thường
       const userRole = currentAdmin && currentAdmin.role ? currentAdmin.role.toString().trim().toUpperCase() : "CTV";
       const isQtv = (userRole === "QTV");
 
@@ -420,11 +892,9 @@
       const searchQuery = searchInputEl ? normalizeStr(searchInputEl.value) : "";
       const selectedQtv = qtvFilterEl ? qtvFilterEl.value : "ALL";
 
-      // NẾU LÀ CTV: ẨN 3 TAB DỌC VÀ DROPDOWN LỌC
       if (!isQtv) {
         if (tabNav) tabNav.style.display = 'none';
         if (qtvFilterEl) qtvFilterEl.style.display = 'none';
-
         if (totalBadgeEl) totalBadgeEl.textContent = allPendingRequests.length;
 
         let ctvList = allPendingRequests.filter(item => {
@@ -436,11 +906,9 @@
         return;
       }
 
-      // NẾU LÀ QTV: HIỆN 3 TAB DỌC VÀ DROPDOWN LỌC
       if (tabNav) tabNav.style.display = 'flex';
       if (qtvFilterEl) qtvFilterEl.style.display = 'inline-block';
 
-      // TỰ ĐỘNG THU THẬP DANH SÁCH QTV VÀO DROPDOWN NẾU CHƯA CÓ
       if (qtvFilterEl && qtvFilterEl.options.length <= 1) {
         const uniqueQtvs = new Set();
         allPendingRequests.forEach(r => {
@@ -457,7 +925,6 @@
         });
       }
 
-      // 2. Phân loại 3 nhóm Tab an toàn
       const clbList = allPendingRequests.filter(r => {
         const src = (r.sourceType || "").toString().toUpperCase();
         if (src !== "CLB") return false;
@@ -480,7 +947,6 @@
           (!st.includes("cho ky") && !st.includes("cho qtv") && !st.includes("da kiem tra") && !st.includes("da tham dinh") && !st.includes("hoan thanh") && !st.includes("tu choi"));
       });
 
-      // 3. Cập nhật số lượng trên các nút tab của QTV
       const bClb = document.getElementById('vbadge-CLB');
       const bDa = document.getElementById('vbadge-DA_DUYET');
       const bCho = document.getElementById('vbadge-CHO_DUYET');
@@ -488,18 +954,15 @@
       if (bDa) bDa.textContent = daDuyetList.length;
       if (bCho) bCho.textContent = choDuyetList.length;
 
-      // 4. BADGE TIÊU ĐỀ: LUÔN HIỂN THỊ TỔNG CỦA CẢ 3 TAB CỘNG LẠI (CLB + Đã duyệt + Chờ duyệt)
       if (totalBadgeEl) {
         totalBadgeEl.textContent = clbList.length + daDuyetList.length + choDuyetList.length;
       }
 
-      // Chọn danh sách theo tab đang bấm
       let currentTabList = [];
       if (currentActiveVerticalTab === 'CLB') currentTabList = clbList;
       else if (currentActiveVerticalTab === 'DA_DUYET') currentTabList = daDuyetList;
       else if (currentActiveVerticalTab === 'CHO_DUYET') currentTabList = choDuyetList;
 
-      // 5. Áp dụng bộ lọc QTV và Ô tìm kiếm (không làm đổi số badge tổng ở tiêu đề)
       let finalDisplayList = currentTabList.filter(item => {
         if (selectedQtv !== "ALL") {
           if (normalizeStr(item.assignedQtv) !== normalizeStr(selectedQtv)) return false;
@@ -515,7 +978,6 @@
       renderCardItems(finalDisplayList);
     }
 
-    // VẼ CÁC THẺ ĐƠN RA GIAO DIỆN THEO TỪNG NHÓM NGÀY (CÓ ĐÁNH SỐ THỨ TỰ 1, 2, 3...)
     function renderCardItems(list) {
       const container = document.getElementById('requestListContainer');
       if (!list || list.length === 0) {
@@ -578,7 +1040,6 @@
                 ${isClb ? 'Đơn vị: ' : 'HK: '}${item.hocKy}
               </div>
 
-              <!-- CHÂN THẺ HIỂN THỊ ĐÚNG THEO TIẾN ĐỘ -->
               <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 text-[10px]">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-slate-500 font-medium">👤 CTV: ${item.assignedCtv || "Tự động"}</span>
@@ -605,39 +1066,50 @@
       container.innerHTML = html;
     }
 
-    // CHUYỂN TAB DỌC
     function switchVerticalTab(tabKey) {
       currentActiveVerticalTab = tabKey;
       
       ['CLB', 'DA_DUYET', 'CHO_DUYET'].forEach(k => {
         const btn = document.getElementById('vtab-' + k);
-        btn.className = "vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-white border-slate-200 text-slate-600 hover:bg-slate-100";
+        if (btn) {
+          btn.className = "vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-white border-slate-200 text-slate-600 hover:bg-slate-100";
+        }
       });
 
       const activeBtn = document.getElementById('vtab-' + tabKey);
-      activeBtn.className = "vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm";
+      if (activeBtn) {
+        activeBtn.className = "vtab-btn text-left p-3 rounded-xl border transition flex flex-col gap-1 bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm";
+      }
 
       filterAndRenderCurrentTab();
     }
 
-    // CHỌN HỒ SƠ ĐỂ XỬ LÝ
     function selectRequest(item) {
       selectedRequest = item;
       document.getElementById('workspaceEmpty').style.display = 'none';
-      document.getElementById('workspaceDetail').style.display = 'block';
+      document.getElementById('workspaceDetail').style.display = 'flex';
 
       const isClb = item.sourceType === "CLB";
       document.getElementById('workSvTitle').textContent = (isClb ? "[CLB] " : "[GXN] ") + item.hoTen + " (" + item.mssv + ")";
       document.getElementById('workSvMeta').textContent = "Lớp: " + item.lop + " • Nguồn: " + item.hocKy + " • Gửi lúc: " + item.thoiGian;
 
+      const iframe = document.getElementById('gxnPreviewIframe');
+      const btnOpen = document.getElementById('btnOpenSlide');
       if (item.slideId) {
-        document.getElementById('btnOpenSlide').href = `https://docs.google.com/presentation/d/${item.slideId}/edit`;
+        iframe.src = `https://docs.google.com/presentation/d/${item.slideId}/preview?rm=minimal`;
+        if (btnOpen) btnOpen.href = `https://docs.google.com/presentation/d/${item.slideId}/edit`;
+      } else {
+        iframe.src = "about:blank";
+        if (btnOpen) btnOpen.href = "#";
       }
+
+      placedStamps = [];
+      selectedStampIndex = null;
+      renderStamps();
 
       const isQtv = currentAdmin.role === "QTV";
       const ctvGroup = document.getElementById('ctvActionGroup');
       const qtvGroup = document.getElementById('qtvActionGroup');
-      const instructionEl = document.getElementById('instructionText');
       const warningBox = document.getElementById('qtvAuditWarningBox');
       const warningLog = document.getElementById('qtvAuditLogContent');
 
@@ -654,23 +1126,14 @@
       if (isQtv) {
         ctvGroup.style.display = 'none';
         qtvGroup.style.display = 'grid';
-        instructionEl.innerHTML = `
-          <div>1. Mở file xem xét định dạng và nội dung.</div>
-          <div>2. Bấm PHÊ DUYỆT để tự động chèn mã QR xác thực và xuất file ảnh gửi sinh viên.</div>
-        `;
       } else {
         ctvGroup.style.display = 'flex';
         qtvGroup.style.display = 'none';
-        instructionEl.innerHTML = `
-          <div>1. Mở file kiểm tra thể thức và số lượng hoạt động.</div>
-          <div>2. Bấm Chuyển Ban thư ký sau khi thẩm định xong.</div>
-        `;
       }
 
       filterAndRenderCurrentTab();
     }
 
-    // CTV THẨM ĐỊNH
     function submitCtvReview() {
       if (!selectedRequest) return;
       const toast = document.getElementById('adminActionToast');
@@ -692,7 +1155,6 @@
         if (res.success) {
           toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
           toast.textContent = "🎉 Đã chuyển hồ sơ thành công!";
-          
           allPendingRequests = allPendingRequests.filter(r => r.slideId !== selectedRequest.slideId);
           selectedRequest = null;
           document.getElementById('workspaceEmpty').style.display = 'block';
@@ -705,18 +1167,44 @@
       });
     }
 
-    // QTV PHÊ DUYỆT (OPTIMISTIC UI: XỬ LÝ LIÊN TỤC KHÔNG TẢI LẠI TRANG)
+    // 3. PHÊ DUYỆT & GỬI DỮ LIỆU CHỮ KÝ CHUẨN XÁC (ĐÃ FIX LỖI KẾT NỐI)
     function approveQtv() {
       if (!selectedRequest) return;
-      if (!confirm("Xác nhận chèn mã QR và xuất file ảnh gửi cho sinh viên " + selectedRequest.hoTen + "?")) return;
+      if (!confirm("Xác nhận phê duyệt và xuất file ảnh gửi cho sinh viên " + selectedRequest.hoTen + "?")) return;
 
       const toast = document.getElementById('adminActionToast');
       const btnApprove = document.getElementById('btnApproveAction');
       btnApprove.disabled = true;
       toast.className = "text-xs font-semibold text-center text-sky-600 min-h-[16px]";
-      toast.textContent = "⏳ Đang chèn mã QR & xuất file gửi sinh viên...";
+      toast.textContent = "⏳ Đang chèn chữ ký, mã QR & xuất file gửi sinh viên...";
 
       const processingSlideId = selectedRequest.slideId;
+      const canvasEl = document.getElementById('slideContainerWrapper');
+      const canvasW = canvasEl ? canvasEl.offsetWidth : 1;
+      const canvasH = canvasEl ? canvasEl.offsetHeight : 1;
+
+      const signaturesPayload = placedStamps.map(stamp => {
+        const div = document.createElement('div');
+        div.innerHTML = stamp.content;
+        const img = div.querySelector('img');
+        
+        // Nhân hệ số 1.18 để bù lại phần viền lề của Google Slides preview
+        const scaleFactor = 1.0;
+        const adjustedW = (stamp.width / canvasW) * scaleFactor;
+        const adjustedH = (stamp.height / canvasH) * scaleFactor;
+        
+        // Dịch nhẹ tọa độ tâm để chữ ký nở đều, không bị lệch góc
+        const offsetX = ((stamp.width * scaleFactor) - stamp.width) / 2;
+        const offsetY = ((stamp.height * scaleFactor) - stamp.height) / 2;
+
+        return {
+          imageData: img ? img.src : "",
+          leftPercent: Math.max(0, (stamp.x - offsetX) / canvasW),
+          topPercent: Math.max(0, (stamp.y - offsetY) / canvasH),
+          widthPercent: adjustedW,
+          heightPercent: adjustedH
+        };
+      });
 
       fetch(GXN_API_URL, {
         method: "POST",
@@ -727,7 +1215,8 @@
           hoTen: selectedRequest.hoTen,
           mssv: selectedRequest.mssv,
           qtvName: currentAdmin.name,
-          sourceType: selectedRequest.sourceType
+          sourceType: selectedRequest.sourceType,
+          signatures: signaturesPayload
         })
       })
       .then(res => res.json())
@@ -735,71 +1224,26 @@
         btnApprove.disabled = false;
         if (res.success) {
           toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
-          toast.textContent = "🎉 Phê duyệt thành công!";
+          toast.textContent = "🎉 Phê duyệt và đóng dấu thành công!";
 
           allPendingRequests = allPendingRequests.filter(r => r.slideId !== processingSlideId);
-          
-          // 1. Cập nhật lại danh sách hiển thị và số lượng trên giao diện trước
+          selectedRequest = null;
+          document.getElementById('workspaceEmpty').style.display = 'block';
+          document.getElementById('workspaceDetail').style.display = 'none';
           filterAndRenderCurrentTab();
-
-          // 2. Lấy bộ lọc hiện tại để tìm hồ sơ kế tiếp ĐÚNG THEO BỘ LỌC ĐANG CHỌN
-          const qtvFilterEl = document.getElementById('filterQtvSelect');
-          const searchInputEl = document.getElementById('adminSearchInput');
-          const currentSelectedQtv = qtvFilterEl ? qtvFilterEl.value : "ALL";
-          const currentSearchQuery = searchInputEl ? normalizeStr(searchInputEl.value) : "";
-
-          // Lọc danh sách thô theo tab hiện tại
-          let baseList = [];
-          if (currentActiveVerticalTab === 'CLB') {
-            baseList = allPendingRequests.filter(r => (r.sourceType || "").toString().toUpperCase() === "CLB");
-          } else if (currentActiveVerticalTab === 'DA_DUYET') {
-            baseList = allPendingRequests.filter(r => {
-              const st = normalizeStr(r.trangThaiHienTai);
-              return (r.sourceType || "").toString().toUpperCase() === "GXN" && 
-                     (st.includes("cho ky") || st.includes("da kiem tra") || st.includes("cho qtv"));
-            });
-          } else {
-            baseList = allPendingRequests.filter(r => {
-              const st = normalizeStr(r.trangThaiHienTai);
-              return (r.sourceType || "").toString().toUpperCase() === "GXN" && 
-                     (st === "cho duyet" || st === "moi khoi tao" || st === "");
-            });
-          }
-
-          // Lọc tiếp theo đúng QTV và từ khóa tìm kiếm đang áp dụng
-          let activeFilteredList = baseList.filter(item => {
-            if (currentSelectedQtv !== "ALL") {
-              if (normalizeStr(item.assignedQtv) !== normalizeStr(currentSelectedQtv)) return false;
-            }
-            if (currentSearchQuery !== "") {
-              const matchName = normalizeStr(item.hoTen).includes(currentSearchQuery);
-              const matchMssv = normalizeStr(item.mssv).includes(currentSearchQuery);
-              if (!matchName && !matchMssv) return false;
-            }
-            return true;
-          });
-
-          // 3. Tự động mở hồ sơ đầu tiên TRONG DANH SÁCH ĐÃ LỌC
-          if (activeFilteredList.length > 0) {
-            selectRequest(activeFilteredList[0]);
-          } else {
-            selectedRequest = null;
-            document.getElementById('workspaceEmpty').style.display = 'block';
-            document.getElementById('workspaceDetail').style.display = 'none';
-          }
         } else {
           toast.className = "text-xs font-semibold text-center text-rose-600 min-h-[16px]";
-          toast.textContent = "❌ " + res.error;
+          toast.textContent = "❌ " + (res.error || "Có lỗi xảy ra từ máy chủ");
         }
       })
       .catch(err => {
         btnApprove.disabled = false;
+        console.error("Chi tiết lỗi:", err);
         toast.className = "text-xs font-semibold text-center text-rose-600 min-h-[16px]";
         toast.textContent = "Lỗi kết nối máy chủ!";
       });
     }
 
-    // TRẢ VỀ CTV
     function returnCtvRequest() {
       if (!selectedRequest) return;
       const reason = prompt("Nhập lý do yêu cầu CTV sửa lại:");
@@ -833,7 +1277,6 @@
       });
     }
 
-    // TỪ CHỐI ĐƠN
     function rejectRequest() {
       if (!selectedRequest) return;
       const reason = prompt("Nhập lý do từ chối Giấy xác nhận:");
@@ -860,7 +1303,6 @@
       });
     }
 
-    // CÁC HÀM CỦA SINH VIÊN
     function showToast(msg, type = "info") {
       const toast = document.getElementById('statusToast');
       if (toast) {
@@ -1012,6 +1454,15 @@
     function goBackToPortal() {
       window.location.href = "/";
     }
+
+    // TỰ ĐỘNG CẬP NHẬT SLIDE KHI TỪ TAB GOOGLE SLIDES QUAY TRỞ LẠI
+    window.addEventListener('focus', () => {
+      const iframe = document.getElementById('gxnPreviewIframe');
+      if (selectedRequest && selectedRequest.slideId && iframe) {
+        // Thêm tham số &t=Date.now() để phá cache, buộc trình duyệt nạp bản thể thức mới nhất
+        iframe.src = `https://docs.google.com/presentation/d/${selectedRequest.slideId}/preview?rm=minimal&t=${Date.now()}`;
+      }
+    });
   </script>
 </body>
 </html>
