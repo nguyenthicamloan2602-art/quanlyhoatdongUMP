@@ -299,16 +299,15 @@
                   </div>
 
                   <!-- THANH TIỆN ÍCH DƯỚI BẢN XEM TRƯỚC -->
-                  <div class="flex items-center justify-between text-[11px] text-slate-500 px-1 py-0.5">
-                    <div class="flex items-center gap-2">
-                      <span id="stampsCountBadge" class="font-semibold text-slate-600">Đã chèn: 0 dấu/chữ ký</span>
-                      <span class="text-slate-300">•</span>
-                      <a id="btnOpenSlide" href="#" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-bold inline-flex items-center gap-1">
-                        <span>🔗</span> Mở Google Slides tab mới ↗
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 px-1">
+                    <div class="flex items-center gap-2.5">
+                      <span id="stampsCountBadge" class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-xl border border-slate-200" style="display: none;">
+                        Đã chèn: 0 dấu/chữ ký
+                      </span>
+                      
+                      <a id="btnOpenSlide" href="#" target="_blank" class="bg-sky-50 hover:bg-sky-100 text-sky-700 font-extrabold px-3.5 py-1.5 rounded-xl text-xs border border-sky-200 shadow-xs inline-flex items-center gap-1.5 transition">
+                        <span>🔗</span> Mở file kiểm tra ↗
                       </a>
-                    </div>
-                    <div class="text-slate-400 italic">
-                      💡 Nhấp vào con dấu để kéo thả vị trí hoặc kéo 4 góc để co giãn
                     </div>
                   </div>
                 </div>
@@ -1114,6 +1113,7 @@
       const warningLog = document.getElementById('qtvAuditLogContent');
       const stampToolbar = document.getElementById('qtvStampToolbar');
       const stampsCountBadge = document.getElementById('stampsCountBadge');
+      const stampDragHint = document.getElementById('stampDragHint');
 
       const rawLog = item.ctvNote || item.rawLog || "";
       if (rawLog !== "" && (rawLog.includes("LỊCH SỬ SỬA ĐỔI") || rawLog.includes("⚠️") || rawLog.includes("Sửa"))) {
@@ -1129,12 +1129,14 @@
         ctvGroup.style.display = 'none';
         qtvGroup.style.display = 'grid';
         if (stampToolbar) stampToolbar.style.display = 'flex';
-        if (stampsCountBadge) stampsCountBadge.style.display = 'inline';
+        if (stampsCountBadge) stampsCountBadge.style.display = 'inline-block';
+        if (stampDragHint) stampDragHint.style.display = 'block';
       } else {
         ctvGroup.style.display = 'flex';
         qtvGroup.style.display = 'none';
         if (stampToolbar) stampToolbar.style.display = 'none';
         if (stampsCountBadge) stampsCountBadge.style.display = 'none';
+        if (stampDragHint) stampDragHint.style.display = 'none';
       }
 
       filterAndRenderCurrentTab();
