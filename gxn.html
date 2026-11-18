@@ -128,7 +128,7 @@
         <!-- ========================================== -->
         <!-- GIAO DIỆN XÉT DUYỆT RỘNG (MẶC ĐỊNH MỞ CHO QTV) -->
         <!-- ========================================== -->
-        <div id="adminWorkspacePanel" class="space-y-4" style="display: block;">
+        <div id="adminWorkspacePanel" class="space-y-4" style="display: none;">
           
           <!-- THANH HEADER PANEL -->
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -360,6 +360,7 @@
     var selectedRequest = null;
     
     var allPendingRequests = [];
+    var driveSignaturesCache = [];
     var currentActiveVerticalTab = 'CLB';
 
     var placedStamps = [];
@@ -434,6 +435,8 @@
           y: Math.round(maxH - h - 45),
           width: w,
           height: h,
+          rotation: 0,
+          opacity: 1,
           content: `<img src="${sigItem.dataUrl}" class="w-full h-full object-contain pointer-events-none select-none" />`
         });
 
@@ -724,13 +727,21 @@
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
-      let mssv = token ? atob(token) : urlParams.get('mssv');
+      let mssv = "";
+      if (token) {
+        try { mssv = atob(token); } catch(e) { mssv = ""; }
+      }
+      if (!mssv) mssv = urlParams.get('mssv') || "";
+
       const savedStudent = sessionStorage.getItem('loggedStudent');
       const isAdminParam = urlParams.get('isAdmin');
       const savedAdmin = sessionStorage.getItem('loggedAdmin');
 
-      // 1. NẾU LÀ SINH VIÊN (CÓ MSSV VÀ KHÔNG PHẢI QTV)
-      if ((mssv || savedStudent) && isAdminParam !== "true" && !savedAdmin) {
+      // 1. NẾU LÀ SINH VIÊN (CÓ MSSV HOẶC PHIÊN SINH VIÊN VÀ KHÔNG PHẢI ADMIN)
+      if ((mssv || savedStudent) && isAdminParam !== "true") {
+        sessionStorage.removeItem('loggedAdmin');
+        currentAdmin = null;
+
         let name = urlParams.get('name') || urlParams.get('hoTen');
         let lop = urlParams.get('lop');
         let khoa = urlParams.get('khoa') || urlParams.get('truongKhoa') || urlParams.get('tuongKhoa') || urlParams.get('svKhoa');
@@ -767,7 +778,7 @@
         return;
       }
 
-      // 2. MẶC ĐỊNH LUÔN KHỞI CHẠY QUYỀN QTV VÀ NẠP DỮ LIỆU
+      // 2. KIỂM TRA QUYỀN QTV / CTV HỢP LỆ
       let adminRole = urlParams.get('role');
       let adminName = urlParams.get('name');
 
@@ -779,26 +790,28 @@
         } catch(e) {}
       }
 
-      // Gán mặc định là QTV nếu chạy Live Server trực tiếp
+      const normalizedRole = adminRole ? adminRole.toString().trim().toUpperCase() : "";
+      if (normalizedRole !== "QTV" && normalizedRole !== "CTV") {
+        window.location.href = "/";
+        return;
+      }
+
       currentAdmin = {
-        role: adminRole || "QTV",
-        name: adminName ? decodeURIComponent(adminName) : "Lê Thanh Hải"
+        role: normalizedRole,
+        name: adminName ? decodeURIComponent(adminName) : "Cán bộ Đoàn - Hội"
       };
 
-      document.getElementById('userFullName').textContent = "🔑 " + currentAdmin.name;
+      document.getElementById('userFullName').textContent = (normalizedRole === "QTV" ? "🔑 " : "👤 ") + currentAdmin.name;
       document.getElementById('studentHeaderCard').style.display = 'none';
       document.getElementById('studentFormPanel').style.display = 'none';
       document.getElementById('adminWorkspacePanel').style.display = 'block';
 
       const tabNav = document.getElementById('adminVerticalTabsNav');
       const qtvFilterEl = document.getElementById('filterQtvSelect');
-      if (tabNav) tabNav.style.display = (currentAdmin.role === "QTV") ? 'flex' : 'none';
-      if (qtvFilterEl) qtvFilterEl.style.display = (currentAdmin.role === "QTV") ? 'inline-block' : 'none';
+      if (tabNav) tabNav.style.display = (normalizedRole === "QTV") ? 'flex' : 'none';
+      if (qtvFilterEl) qtvFilterEl.style.display = (normalizedRole === "QTV") ? 'inline-block' : 'none';
 
-      // Nạp kho chữ ký đã lưu và tải ngay danh sách hồ sơ từ Google Apps Script
-      if (typeof renderSavedSignaturesList === 'function') {
-        renderSavedSignaturesList();
-      }
+      renderSavedSignaturesList();
       reloadPendingAdmin();
     });
 
@@ -1143,8 +1156,6 @@
         }
       });
     }
-
-    let driveSignaturesCache = [];
 
     // TỰ ĐỘNG TẢI DANH SÁCH CHỮ KÝ TỪ GOOGLE DRIVE KHI QTV ĐĂNG NHẬP
     function loadDriveSignatures() {
