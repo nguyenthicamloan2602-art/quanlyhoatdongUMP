@@ -387,7 +387,8 @@
             <div class="text-[12px] pt-1">• Đơn vị công tác: <b>${mem.tenClb}</b></div>
             <div class="text-[12px]">• Chức vụ / Vai trò: <b>${mem.chucVu}</b></div>
             <div class="text-[12px]">• Thời gian: <b>Học kỳ ${mem.hocKi}</b> — <b>Năm học ${mem.namHoc}</b></div>
-          </div>
+            <div class="text-[12px]">• Mức độ hoàn thành: <b>Hoàn thành ${mem.xepLoai || 'tốt nhiệm vụ'}</b></div>
+            </div>
         `;
         card.style.display = 'block';
       }
@@ -534,6 +535,7 @@
         payload.chucVu = mem.chucVu;
         payload.hocKi = mem.hocKi;
         payload.namHoc = mem.namHoc;
+        payload.xepLoai = mem.xepLoai || "tốt nhiệm vụ";
       } else {
         if (hasPendingClubRequest) {
           showToast("⚠️ Bạn đang có 1 hồ sơ chờ duyệt, vui lòng đợi hoàn tất!", "error");
@@ -652,7 +654,7 @@
                 </div>
                 <div class="text-[11px] text-slate-500">🕒 ${item.thoiGian}</div>
                 ${expiryText ? `<div class="text-[11px] font-semibold ${isExpired ? 'text-slate-500' : 'text-emerald-700'}">⏳ ${expiryText}</div>` : ''}
-                ${item.lyDoTuChoi ? `<div class="text-rose-600 bg-rose-50 p-2 rounded-lg text-[11px]">❌ ${item.lyDoTuChoi}</div>` : ''}
+                ${(isReject && item.lyDoTuChoi) ? `<div class="text-rose-600 bg-rose-50 p-2 rounded-lg text-[11px]">❌ ${item.lyDoTuChoi}</div>` : ''}
                 ${(isDone && !isExpired && item.downloadUrl) ? `
                   <div class="pt-1 text-right">
                     <a href="${item.downloadUrl}" target="_blank" class="inline-block bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-xl text-[11px] shadow-sm hover:bg-emerald-700">
