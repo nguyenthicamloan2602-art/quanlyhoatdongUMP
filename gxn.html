@@ -1157,8 +1157,9 @@
       if (loadBadge) loadBadge.classList.remove('hidden');
 
       const isQtv = (currentAdmin && currentAdmin.role && currentAdmin.role.toString().trim().toUpperCase() === "QTV");
+      const cacheBuster = Date.now();
       if (isQtv) {
-        iframe.src = `https://docs.google.com/presentation/d/${selectedRequest.slideId}/preview?rm=minimal${slideHash}`;
+        iframe.src = `https://docs.google.com/presentation/d/${selectedRequest.slideId}/preview?rm=minimal&_t=${cacheBuster}${slideHash}`;
       } else {
         iframe.src = `https://docs.google.com/presentation/d/${selectedRequest.slideId}/edit?usp=sharing${slideHash}`;
       }
@@ -1185,35 +1186,48 @@
 
     function submitCtvReview() {
       if (!selectedRequest) return;
+      const targetCtvReq = {
+        rowIdx: selectedRequest.rowIdx,
+        slideId: selectedRequest.slideId
+      };
+
       const toast = document.getElementById('adminActionToast');
       toast.className = "text-xs font-semibold text-center text-sky-600 min-h-[16px]";
-      toast.textContent = "⏳ Đang kiểm tra & chuyển cho Ban thư ký...";
+      toast.textContent = "⏳ Đang đồng bộ thay đổi trên Slide & chuyển Ban thư ký...";
 
-      fetch(GXN_API_URL, {
-        method: "POST",
-        body: JSON.stringify({
-          action: "ctvSubmit",
-          rowIdx: selectedRequest.rowIdx,
-          slideId: selectedRequest.slideId,
-          ctvName: currentAdmin.name,
-          comment: ""
+      setTimeout(() => {
+        fetch(GXN_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "ctvSubmit",
+            rowIdx: targetCtvReq.rowIdx,
+            slideId: targetCtvReq.slideId,
+            ctvName: currentAdmin.name,
+            comment: ""
+          })
         })
-      })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success) {
-          toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
-          toast.textContent = "🎉 Đã chuyển hồ sơ thành công!";
-          allPendingRequests = allPendingRequests.filter(r => r.slideId !== selectedRequest.slideId);
-          selectedRequest = null;
-          document.getElementById('workspaceEmpty').style.display = 'block';
-          document.getElementById('workspaceDetail').style.display = 'none';
-          filterAndRenderCurrentTab();
-        } else {
+        .then(res => res.json())
+        .then(res => {
+          if (res.success) {
+            toast.className = "text-xs font-semibold text-center text-emerald-600 min-h-[16px]";
+            toast.textContent = "🎉 Đã chuyển hồ sơ thành công!";
+            allPendingRequests = allPendingRequests.filter(r => r.slideId !== targetCtvReq.slideId);
+            if (selectedRequest && selectedRequest.slideId === targetCtvReq.slideId) {
+              selectedRequest = null;
+              document.getElementById('workspaceEmpty').style.display = 'block';
+              document.getElementById('workspaceDetail').style.display = 'none';
+            }
+            filterAndRenderCurrentTab();
+          } else {
+            toast.className = "text-xs font-semibold text-center text-rose-600 min-h-[16px]";
+            toast.textContent = "❌ " + res.error;
+          }
+        })
+        .catch(() => {
           toast.className = "text-xs font-semibold text-center text-rose-600 min-h-[16px]";
-          toast.textContent = "❌ " + res.error;
-        }
-      });
+          toast.textContent = "❌ Lỗi kết nối máy chủ!";
+        });
+      }, 1500);
     }
 
     // ==============================================================
