@@ -187,18 +187,51 @@
       wm.innerHTML = items;
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      buildWatermark();
-
-      const params = new URLSearchParams(window.location.search);
-      urlHkFilter = (params.get('hk') || params.get('hocky') || "").trim();
-      if (urlHkFilter) {
-        const tag = document.getElementById('hkFilterTag');
-        tag.textContent = `📌 Học kỳ: ${urlHkFilter}`;
-        tag.classList.remove('hidden');
+    // Tự động thử lại tối đa 2 lần (cách nhau 2.5s) khi lượng truy cập tăng cao
+    async function fetchWithAutoRetry(payload, onRetryStatus) {
+      const maxRetries = 2;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const res = await fetch(TREE_API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+          }).then(r => r.json());
+          if (res && res.success) return res;
+          if (attempt === maxRetries) return res || { success: false };
+        } catch (err) {
+          if (attempt === maxRetries) throw err;
+        }
+        if (onRetryStatus) onRetryStatus(attempt + 1, maxRetries);
+        await new Promise(resolve => setTimeout(resolve, 2500));
       }
+    }
 
-      // Cache danh mục 10 phút trên trình duyệt theo từng học kỳ
+    function renderFriendlyErrorHtml(retryActionJs) {
+      return `
+        <div class="bg-amber-50/90 border border-amber-300 rounded-2xl p-6 max-w-2xl mx-auto my-4 text-left space-y-3 shadow-xs">
+          <div class="flex items-center gap-2.5 text-amber-900 font-extrabold text-sm">
+            <span class="text-xl">⏳</span>
+            <span>Hệ thống đang đồng bộ hoặc có nhiều sinh viên truy cập cùng lúc</span>
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            Dữ liệu hoạt động và minh chứng của bạn vẫn được lưu trữ an toàn. Do lượng truy cập đồng thời đang tăng cao, máy chủ cần thêm vài giây để phản hồi.
+          </p>
+          <div class="bg-white/90 rounded-xl p-3.5 border border-amber-200 text-xs text-slate-700 space-y-1.5">
+            <div class="font-bold text-slate-900">📌 Hướng dẫn xử lý nhanh:</div>
+            <div>1. Đợi khoảng <b>10–15 giây</b> rồi bấm nút <b>Thử tải lại dữ liệu</b> bên dưới (hạn chế bấm F5 liên tục).</div>
+            <div>2. Nếu chưa hiển thị ngay, vui lòng mở lại đường link sau <b>2–3 phút</b>.</div>
+          </div>
+          <div class="pt-1 flex justify-end">
+            <button type="button" onclick="${retryActionJs}"
+                    class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-xs transition">
+              🔄 Thử tải lại dữ liệu
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCatalogWithFallback() {
       const localCacheKey = "UMP_CATALOG_CACHE_V4_" + (urlHkFilter || "ALL");
       const localCacheTimeKey = "UMP_CATALOG_TIME_V4_" + (urlHkFilter || "ALL");
       const savedJson = localStorage.getItem(localCacheKey);
@@ -214,11 +247,14 @@
         } catch (e) {}
       }
 
+      document.getElementById('statBadge').textContent = "⏳ Đang nạp danh mục...";
       try {
-        const res = await fetch(TREE_API_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "getCatalog", hkFilter: urlHkFilter })
-        }).then(r => r.json());
+        const res = await fetchWithAutoRetry(
+          { action: "getCatalog", hkFilter: urlHkFilter },
+          (attempt) => {
+            document.getElementById('statBadge').textContent = `⏳ Đang đông truy cập, tự động thử lại (${attempt}/2)...`;
+          }
+        );
 
         if (res && res.success) {
           try {
@@ -227,11 +263,27 @@
           } catch (e) {}
           applyLoadedData(res.sources || []);
         } else {
-          document.getElementById('statBadge').textContent = "❌ " + (res.error || "Lỗi tải danh mục");
+          document.getElementById('statBadge').textContent = "⚠️ Hệ thống đang bận";
+          document.getElementById('activeFolderContent').innerHTML = renderFriendlyErrorHtml("loadCatalogWithFallback()");
         }
       } catch (err) {
-        document.getElementById('statBadge').textContent = "❌ Lỗi kết nối máy chủ";
+        document.getElementById('statBadge').textContent = "⚠️ Hệ thống đang bận";
+        document.getElementById('activeFolderContent').innerHTML = renderFriendlyErrorHtml("loadCatalogWithFallback()");
       }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      buildWatermark();
+
+      const params = new URLSearchParams(window.location.search);
+      urlHkFilter = (params.get('hk') || params.get('hocky') || "").trim();
+      if (urlHkFilter) {
+        const tag = document.getElementById('hkFilterTag');
+        tag.textContent = `📌 Học kỳ: ${urlHkFilter}`;
+        tag.classList.remove('hidden');
+      }
+
+      await loadCatalogWithFallback();
     });
 
     function applyLoadedData(sources) {
@@ -456,15 +508,15 @@
       document.getElementById('excelMetaSummary').textContent = "Đang tải dữ liệu...";
 
       try {
-        const res = await fetch(TREE_API_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            action: "getActivityDetail",
-            sourceId: src.id,
-            hocKy: sem.hocKy,
-            actKey: act.key
-          })
-        }).then(r => r.json());
+        const res = await fetchWithAutoRetry(
+          { action: "getActivityDetail", sourceId: src.id, hocKy: sem.hocKy, actKey: act.key },
+          (attempt) => {
+            document.getElementById('excelTableBody').innerHTML = `
+              <tr><td colspan="7" class="text-center py-12 text-amber-700 font-bold text-xs">
+                ⏳ Lượng truy cập đang cao, hệ thống đang tự động kết nối lại (${attempt}/2)...
+              </td></tr>`;
+          }
+        );
 
         if (res && res.success) {
           const svList = res.sinhVien || [];
@@ -473,11 +525,11 @@
           renderExcelRows();
         } else {
           document.getElementById('excelTableBody').innerHTML = `
-            <tr><td colspan="7" class="text-center py-8 text-rose-600 font-bold">❌ ${res.error || "Không tải được danh sách"}</td></tr>`;
+            <tr><td colspan="7" class="p-4">${renderFriendlyErrorHtml(`openExcelSheet(${sIdx}, ${hkIdx}, ${aIdx})`)}</td></tr>`;
         }
       } catch (err) {
         document.getElementById('excelTableBody').innerHTML = `
-          <tr><td colspan="7" class="text-center py-8 text-rose-600 font-bold">❌ Lỗi kết nối máy chủ!</td></tr>`;
+          <tr><td colspan="7" class="p-4">${renderFriendlyErrorHtml(`openExcelSheet(${sIdx}, ${hkIdx}, ${aIdx})`)}</td></tr>`;
       }
     }
 
