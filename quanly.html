@@ -18,7 +18,6 @@
     .font-mono-code { font-family: 'JetBrains Mono', monospace !important; }
     body { background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 45%, #eef2ff 100%); }
 
-    /* Folder vuông hiện đại */
     .folder-square-card {
       position: relative;
       transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
@@ -28,7 +27,6 @@
       box-shadow: 0 14px 28px -8px rgba(2, 132, 199, 0.2);
     }
 
-    /* Giao diện bảng tính Excel */
     .excel-grid { border-collapse: collapse; width: 100%; background: #ffffff; }
     .excel-grid th, .excel-grid td { border: 1px solid #cbd5e1; padding: 7px 12px; font-size: 12.5px; }
     .excel-col-letter {
@@ -53,7 +51,7 @@
   <header class="bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-md py-4 px-6 md:px-10 shrink-0">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2">
       <div>
-        <h1 class="font-extrabold text-sm md:text-base uppercase tracking-tight">TRA CỨU DANH SÁCH HOẠT ĐỘNG & SINH VIÊN THAM GIA</h1>
+        <h1 class="font-extrabold text-sm md:text-base uppercase tracking-tight">QUẢN LÝ DANH SÁCH HOẠT ĐỘNG & SINH VIÊN THAM GIA</h1>
         <p class="text-xs text-sky-100 uppercase font-medium">ĐOÀN THANH NIÊN - HỘI SINH VIÊN ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p>
       </div>
       <div class="flex items-center gap-2">
@@ -67,15 +65,15 @@
     </div>
   </header>
 
-  <!-- MÀN HÌNH 1: 2 FOLDER VUÔNG & CÂY DANH MỤC -->
+  <!-- MÀN HÌNH 1: 2 FOLDER VUÔNG & DANH SÁCH HOẠT ĐỘNG -->
   <main id="treeViewScreen" class="flex-grow p-4 md:p-6 max-w-6xl w-full mx-auto space-y-6">
     
-    <!-- THANH TÌM KIẾM NHANH -->
+    <!-- THANH TÌM KIẾM TÊN HOẠT ĐỘNG -->
     <div class="bg-white rounded-2xl p-4 shadow-sm border border-sky-100 flex flex-col md:flex-row gap-3 items-center justify-between">
-      <input id="searchInput" type="text" oninput="onSearchInput()" placeholder="🔍 Tìm tên hoạt động, đơn vị CLB, MSSV, họ tên hoặc lớp..."
+      <input id="searchInput" type="text" oninput="onSearchInput()" placeholder="🔍 Tìm kiếm tên hoạt động..."
              class="w-full md:flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:ring-2 focus:ring-sky-500 select-text">
       <div id="statBadge" class="text-xs font-bold text-sky-800 bg-sky-50 px-3.5 py-2 rounded-xl border border-sky-200 shrink-0">
-        ⏳ Đang nạp dữ liệu...
+        ⏳ Đang tải danh mục...
       </div>
     </div>
 
@@ -104,16 +102,18 @@
         </button>
       </div>
 
-      <div class="bg-slate-50 border-b border-slate-300 px-3 py-2 flex flex-col md:flex-row items-stretch md:items-center gap-2 text-xs">
-        <div class="flex items-center gap-2 flex-1 min-w-0">
-          <span class="bg-white border border-slate-300 px-2.5 py-1 rounded font-mono-code font-bold text-slate-600 text-[11px] shrink-0">A1:F<span id="excelTotalRows">1</span></span>
-          <span class="text-[#107c41] font-extrabold italic font-serif text-sm shrink-0">fx</span>
-          <div id="excelFormulaText" class="bg-white border border-slate-300 px-3 py-1 rounded text-slate-700 font-semibold truncate flex-1">--</div>
+      <!-- THÔNG TIN CHI TIẾT HOẠT ĐỘNG (NGÀY TỔ CHỨC, MỤC ĐRL, ĐƠN VỊ) CHỈ HIỆN KHI MỞ DANH SÁCH -->
+      <div class="bg-emerald-50/70 border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-700">
+          <span>🎯 Mục ĐRL: <b id="detailMucDrl" class="text-emerald-900">--</b></span>
+          <span>📅 Thời gian tổ chức: <b id="detailNgay" class="text-emerald-900">--</b></span>
+          <span id="detailDonViWrap" class="hidden">🏛️ Đơn vị: <b id="detailDonVi" class="text-indigo-800">--</b></span>
         </div>
-        <input id="sheetSearchInput" type="text" oninput="renderExcelRows()" placeholder="🔎 Lọc nhanh MSSV / Tên / Lớp trong bảng này..."
-               class="bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-emerald-500 md:w-72 select-text">
+        <input id="sheetSearchInput" type="text" oninput="renderExcelRows()" placeholder="🔎 Tìm MSSV / Họ tên / Lớp trong danh sách này..."
+               class="bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-emerald-500 w-full md:w-72 select-text">
       </div>
 
+      <!-- KHUNG BẢNG TÍNH CÓ WATERMARK CHỐNG GIẢ -->
       <div class="relative flex-grow overflow-auto max-h-[68vh] bg-white">
         <div id="watermarkOverlay" class="pointer-events-none fixed inset-0 z-30 opacity-[0.055] flex flex-wrap items-center justify-center gap-16 overflow-hidden rotate-[-22deg] scale-125"></div>
         <table class="excel-grid relative z-10">
@@ -160,11 +160,12 @@
 
     let rawSources = [];
     let filteredSources = [];
-    let selectedSourceIdx = null; // null = chưa mở folder nào, 0 = Đoàn-Hội, 1 = CLB
+    let selectedSourceIdx = null;
     let openSemesters = {};
     let activeSheetData = null;
     let activeDirectCode = "";
     let urlHkFilter = "";
+    const detailMemoryCache = {}; // Lưu tạm chi tiết hoạt động đã mở để bấm lại hiện ngay 0ms
 
     document.addEventListener('keydown', function(e) {
       if ((e.ctrlKey || e.metaKey) && ['s', 'p', 'u', 'c', 'a'].includes(e.key.toLowerCase())) {
@@ -190,7 +191,6 @@
     window.addEventListener('DOMContentLoaded', async () => {
       buildWatermark();
 
-      // Đọc đuôi link ?hk=26-27.HK1 (hoặc ?hocky=...)
       const params = new URLSearchParams(window.location.search);
       urlHkFilter = (params.get('hk') || params.get('hocky') || "").trim();
       if (urlHkFilter) {
@@ -199,13 +199,13 @@
         tag.classList.remove('hidden');
       }
 
-      // Đọc bộ nhớ đệm trình duyệt (5 phút) để giảm tải tối đa cho Server
-      const localCacheKey = "UMP_TREE_LOCAL_CACHE_V1";
-      const localCacheTimeKey = "UMP_TREE_LOCAL_TIME_V1";
+      // Cache danh mục 10 phút trên trình duyệt -> mở trang trong 0.05 giây
+      const localCacheKey = "UMP_CATALOG_CACHE_V3";
+      const localCacheTimeKey = "UMP_CATALOG_TIME_V3";
       const savedJson = localStorage.getItem(localCacheKey);
       const savedTime = parseInt(localStorage.getItem(localCacheTimeKey) || "0", 10);
 
-      if (savedJson && (Date.now() - savedTime < 5 * 60 * 1000)) {
+      if (savedJson && (Date.now() - savedTime < 10 * 60 * 1000)) {
         try {
           const parsed = JSON.parse(savedJson);
           if (parsed && parsed.success) {
@@ -218,7 +218,7 @@
       try {
         const res = await fetch(TREE_API_URL, {
           method: "POST",
-          body: JSON.stringify({ action: "getTree" })
+          body: JSON.stringify({ action: "getCatalog" })
         }).then(r => r.json());
 
         if (res && res.success) {
@@ -228,7 +228,7 @@
           } catch (e) {}
           applyLoadedData(res.sources || []);
         } else {
-          document.getElementById('statBadge').textContent = "❌ " + (res.error || "Lỗi tải dữ liệu");
+          document.getElementById('statBadge').textContent = "❌ " + (res.error || "Lỗi tải danh mục");
         }
       } catch (err) {
         document.getElementById('statBadge').textContent = "❌ Lỗi kết nối máy chủ";
@@ -238,7 +238,6 @@
     function applyLoadedData(sources) {
       rawSources = sources;
 
-      // Lọc theo đuôi link ?hk=... nếu có
       if (urlHkFilter) {
         const hkNorm = norm(urlHkFilter);
         filteredSources = rawSources.map(src => ({
@@ -249,7 +248,6 @@
         filteredSources = rawSources;
       }
 
-      // Mặc định mở sẵn học kỳ đầu tiên bên trong mỗi folder
       filteredSources.forEach((src, sIdx) => {
         if (src.semesters && src.semesters.length > 0) {
           openSemesters[`hk_${sIdx}_0`] = true;
@@ -286,9 +284,15 @@
     function onSearchInput() {
       const q = norm(document.getElementById('searchInput').value);
       if (q && selectedSourceIdx === null) {
-        selectedSourceIdx = 0; // Tự mở folder đầu tiên khi bắt đầu gõ tìm kiếm
+        selectedSourceIdx = 0;
       }
       renderFoldersAndContent();
+    }
+
+    // CHỈ TÌM KIẾM THEO TÊN HOẠT ĐỘNG
+    function matchActivityName(act, q) {
+      if (!q) return true;
+      return norm(act.ten).includes(q);
     }
 
     function renderFoldersAndContent() {
@@ -303,9 +307,7 @@
         let countActs = 0;
         (src.semesters || []).forEach(sem => {
           sem.activities.forEach(act => {
-            const matchAct = !q || norm(act.ten).includes(q) || norm(act.donVi).includes(q) || norm(act.mucDrl).includes(q);
-            const hasSv = matchAct || act.sinhVien.some(sv => norm(sv.mssv).includes(q) || norm(sv.hoTen).includes(q) || norm(sv.lop).includes(q));
-            if (hasSv) countActs++;
+            if (matchActivityName(act, q)) countActs++;
           });
         });
         totalAllActs += countActs;
@@ -315,7 +317,7 @@
 
         foldersHtml += `
           <div onclick="selectMainFolder(${sIdx})"
-               class="folder-square-card cursor-pointer rounded-3xl p-6 border-2 flex flex-col justify-between min-h-[175px]
+               class="folder-square-card cursor-pointer rounded-3xl p-6 border-2 flex flex-col justify-between min-h-[170px]
                       ${isSelected
                         ? (isFirst ? 'bg-sky-600 text-white border-sky-700 shadow-lg' : 'bg-indigo-600 text-white border-indigo-700 shadow-lg')
                         : 'bg-white text-slate-800 border-sky-100 hover:border-sky-300 shadow-sm'}">
@@ -327,7 +329,7 @@
               </div>
               <span class="text-xs font-extrabold px-3 py-1 rounded-full
                            ${isSelected ? 'bg-white text-slate-900' : (isFirst ? 'bg-sky-100 text-sky-800' : 'bg-indigo-100 text-indigo-800')}">
-                ${countActs} danh sách ${isSelected ? '▾' : '▸'}
+                ${countActs} hoạt động ${isSelected ? '▾' : '▸'}
               </span>
             </div>
 
@@ -344,9 +346,8 @@
       });
 
       folderGrid.innerHTML = foldersHtml;
-      document.getElementById('statBadge').textContent = `📗 Tổng cộng: ${totalAllActs} danh sách`;
+      document.getElementById('statBadge').textContent = `📗 Tổng cộng: ${totalAllActs} hoạt động`;
 
-      // Hiển thị nội dung của Folder đang được bấm chọn
       if (selectedSourceIdx === null || !filteredSources[selectedSourceIdx]) {
         contentBox.innerHTML = `
           <div class="bg-white/80 border border-dashed border-sky-200 rounded-2xl p-8 text-center text-xs text-slate-500">
@@ -363,11 +364,7 @@
         const matchedActs = [];
 
         sem.activities.forEach((act, aIdx) => {
-          const matchAct = !q || norm(act.ten).includes(q) || norm(act.donVi).includes(q) || norm(act.mucDrl).includes(q);
-          const svFiltered = matchAct
-            ? act.sinhVien
-            : act.sinhVien.filter(sv => norm(sv.mssv).includes(q) || norm(sv.hoTen).includes(q) || norm(sv.lop).includes(q));
-          if (svFiltered.length > 0) matchedActs.push({ act, aIdx });
+          if (matchActivityName(act, q)) matchedActs.push({ act, aIdx });
         });
 
         if (matchedActs.length === 0) return;
@@ -388,24 +385,21 @@
         `;
 
         if (isHkOpen) {
-          semHtml += `<div class="p-3.5 md:p-4 space-y-2.5 border-t border-slate-100">`;
+          semHtml += `<div class="p-3.5 md:p-4 space-y-2 border-t border-slate-100">`;
           matchedActs.forEach(({ act, aIdx }) => {
+            // Danh sách ngoài: chỉ hiện tên hoạt động (và đơn vị nếu là CLB), KHÔNG hiện số SV, ngày, mục ĐRL
             semHtml += `
               <div onclick="openExcelSheet(${selectedSourceIdx}, ${hkIdx}, ${aIdx})"
                    class="group rounded-xl border border-slate-200 hover:border-emerald-400 bg-white hover:bg-emerald-50/30 px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2.5 cursor-pointer transition">
-                <div class="space-y-1 min-w-0">
+                <div class="space-y-0.5 min-w-0">
                   <div class="font-bold text-slate-800 group-hover:text-emerald-800 text-xs md:text-sm flex items-start gap-2">
                     <span class="text-emerald-600 shrink-0 text-base leading-none">📗</span>
                     <span class="leading-snug">${act.ten}</span>
                   </div>
-                  <div class="text-[11px] text-slate-500 pl-6 flex flex-wrap gap-x-3 gap-y-0.5">
-                    ${act.donVi ? `<span>🏛️ Đơn vị: <b class="text-indigo-700">${act.donVi}</b></span>` : ''}
-                    <span>🎯 Mục ĐRL: <b>${act.mucDrl}</b></span>
-                    <span>📅 Ngày: <b>${act.ngay}</b></span>
-                  </div>
+                  ${act.donVi ? `<div class="text-[11px] text-slate-500 pl-6">🏛️ Đơn vị: <b class="text-indigo-700">${act.donVi}</b></div>` : ''}
                 </div>
-                <span class="self-end md:self-center text-[11px] font-extrabold bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white border border-emerald-200 px-3 py-1.5 rounded-xl transition shrink-0">
-                  📊 Mở danh sách (${act.sinhVien.length} SV) ↗
+                <span class="self-end md:self-center text-[11px] font-extrabold bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white border border-emerald-200 px-3.5 py-1.5 rounded-xl transition shrink-0">
+                  📊 Mở danh sách ↗
                 </span>
               </div>
             `;
@@ -418,45 +412,93 @@
 
       contentBox.innerHTML = semHtml || `
         <div class="bg-white rounded-2xl p-8 text-center text-xs text-slate-400 border border-slate-200">
-          Không có hoạt động nào trong thư mục này khớp điều kiện lọc.
+          Không tìm thấy hoạt động nào khớp từ khóa.
         </div>`;
     }
 
-    function openExcelSheet(sIdx, hkIdx, aIdx) {
+    // MỞ FILE DANH SÁCH EXCEL RIÊNG BIỆT & NẠP CHI TIẾT SINH VIÊN TỪ MSSV
+    async function openExcelSheet(sIdx, hkIdx, aIdx) {
       const src = filteredSources[sIdx];
       const sem = src && src.semesters ? src.semesters[hkIdx] : null;
       const act = sem && sem.activities ? sem.activities[aIdx] : null;
       if (!act) return;
 
-      activeSheetData = { src, sem, act };
       activeDirectCode = `${sIdx}_${hkIdx}_${aIdx}`;
       window.location.hash = `file=${activeDirectCode}`;
 
       document.getElementById('treeViewScreen').classList.add('hidden');
       document.getElementById('excelViewerScreen').classList.remove('hidden');
 
+      // Hiển thị ngày tổ chức & mục ĐRL bên trong chi tiết
       document.getElementById('excelFileName').textContent = `[${sem.hocKy}] ${act.ten}.xlsx`;
-      document.getElementById('excelFormulaText').textContent = `${act.ten} | Mục ĐRL: ${act.mucDrl} | Thời gian: ${act.ngay}${act.donVi ? ' | Đơn vị: ' + act.donVi : ''}`;
-      document.getElementById('excelMetaSummary').textContent = `${src.title} • Học kỳ: ${sem.hocKy} • Tổng số: ${act.sinhVien.length} sinh viên`;
+      document.getElementById('detailMucDrl').textContent = act.mucDrl || "--";
+      document.getElementById('detailNgay').textContent = act.ngay || "--";
 
-      const verifyToken = btoa(unescape(encodeURIComponent(`${sem.hocKy}|${act.sinhVien.length}`))).slice(0, 12).toUpperCase();
-      document.getElementById('antiFakeStamp').textContent = `🛡️ MÃ XÁC THỰC: UMP-${verifyToken} • CHỈ XEM TRỰC TUYẾN`;
+      const dvWrap = document.getElementById('detailDonViWrap');
+      if (act.donVi) {
+        document.getElementById('detailDonVi').textContent = act.donVi;
+        dvWrap.classList.remove('hidden');
+      } else {
+        dvWrap.classList.add('hidden');
+      }
 
-      document.getElementById('sheetSearchInput').value = document.getElementById('searchInput').value || "";
-      renderExcelRows();
+      document.getElementById('sheetSearchInput').value = "";
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      const cacheLookupKey = `${src.id}|${sem.hocKy}|${act.key}`;
+      if (detailMemoryCache[cacheLookupKey]) {
+        activeSheetData = { src, sem, act, sinhVien: detailMemoryCache[cacheLookupKey] };
+        renderExcelRows();
+        return;
+      }
+
+      document.getElementById('excelTableBody').innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-12 text-sky-700 font-bold text-xs">
+            ⏳ Đang tra cứu danh sách sinh viên tham gia từ dữ liệu hệ thống...
+          </td>
+        </tr>`;
+      document.getElementById('excelMetaSummary').textContent = "Đang tải dữ liệu...";
+
+      try {
+        const res = await fetch(TREE_API_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "getActivityDetail",
+            sourceId: src.id,
+            hocKy: sem.hocKy,
+            actKey: act.key
+          })
+        }).then(r => r.json());
+
+        if (res && res.success) {
+          const svList = res.sinhVien || [];
+          detailMemoryCache[cacheLookupKey] = svList;
+          activeSheetData = { src, sem, act, sinhVien: svList };
+          renderExcelRows();
+        } else {
+          document.getElementById('excelTableBody').innerHTML = `
+            <tr><td colspan="7" class="text-center py-8 text-rose-600 font-bold">❌ ${res.error || "Không tải được danh sách"}</td></tr>`;
+        }
+      } catch (err) {
+        document.getElementById('excelTableBody').innerHTML = `
+          <tr><td colspan="7" class="text-center py-8 text-rose-600 font-bold">❌ Lỗi kết nối máy chủ!</td></tr>`;
+      }
     }
 
     function renderExcelRows() {
       if (!activeSheetData) return;
       const q = norm(document.getElementById('sheetSearchInput').value);
-      const list = activeSheetData.act.sinhVien.filter(sv =>
+      const allSv = activeSheetData.sinhVien || [];
+      const list = allSv.filter(sv =>
         !q || norm(sv.mssv).includes(q) || norm(sv.hoTen).includes(q) || norm(sv.lop).includes(q) || norm(sv.khoa).includes(q) || norm(sv.vaiTro).includes(q)
       );
 
-      document.getElementById('excelTotalRows').textContent = list.length + 1;
-      const tbody = document.getElementById('excelTableBody');
+      document.getElementById('excelMetaSummary').textContent = `${activeSheetData.src.title} • Học kỳ: ${activeSheetData.sem.hocKy} • Tổng số: ${allSv.length} sinh viên`;
+      const verifyToken = btoa(unescape(encodeURIComponent(`${activeSheetData.sem.hocKy}|${allSv.length}`))).slice(0, 12).toUpperCase();
+      document.getElementById('antiFakeStamp').textContent = `🛡️ MÃ XÁC THỰC: UMP-${verifyToken} • CHỈ XEM TRỰC TUYẾN`;
 
+      const tbody = document.getElementById('excelTableBody');
       if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400 italic">Không có sinh viên nào khớp từ khóa lọc.</td></tr>`;
         return;
