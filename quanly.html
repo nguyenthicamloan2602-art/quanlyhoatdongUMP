@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>DANH SÁCH HOẠT ĐỘNG & SINH VIÊN THAM GIA - UMP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace !important; }
+    body { background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 45%, #eef2ff 100%); }
+
+    /* Folder vuông hiện đại */
+    .folder-square-card {
+      position: relative;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .folder-square-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 28px -8px rgba(2, 132, 199, 0.2);
+    }
+
+    /* Giao diện bảng tính Excel */
+    .excel-grid { border-collapse: collapse; width: 100%; background: #ffffff; }
+    .excel-grid th, .excel-grid td { border: 1px solid #cbd5e1; padding: 7px 12px; font-size: 12.5px; }
+    .excel-col-letter {
+      background: #f1f5f9; color: #475569; font-weight: 700; text-align: center;
+      font-size: 11px; padding: 4px 8px !important; border-bottom: 2px solid #94a3b8 !important;
+    }
+    .excel-row-num {
+      background: #f8fafc; color: #64748b; font-weight: 700; text-align: center;
+      width: 44px; font-size: 11px; border-right: 2px solid #cbd5e1 !important;
+    }
+    .excel-header-row th {
+      background: #e0f2fe; color: #0c4a6e; font-weight: 800; text-transform: uppercase; font-size: 11.5px;
+    }
+    .excel-grid tbody tr:hover td:not(.excel-row-num) { background-color: #eff6ff; }
+
+    @media print { body { display: none !important; } }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col" oncontextmenu="return false;">
+
+  <!-- HEADER -->
+  <header class="bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-md py-4 px-6 md:px-10 shrink-0">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-2">
+      <div>
+        <h1 class="font-extrabold text-sm md:text-base uppercase tracking-tight">TRA CỨU DANH SÁCH HOẠT ĐỘNG & SINH VIÊN THAM GIA</h1>
+        <p class="text-xs text-sky-100 uppercase font-medium">ĐOÀN THANH NIÊN - HỘI SINH VIÊN ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="hkFilterTag" class="hidden bg-amber-400 text-slate-900 font-extrabold text-[11px] px-3 py-1 rounded-xl shadow-xs">
+          📌 Đang lọc: --
+        </span>
+        <span class="inline-flex items-center gap-1.5 bg-white/15 border border-white/25 px-3 py-1.5 rounded-xl text-[11px] font-bold">
+          <span>🔒</span> Chỉ xem trực tuyến
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MÀN HÌNH 1: 2 FOLDER VUÔNG & CÂY DANH MỤC -->
+  <main id="treeViewScreen" class="flex-grow p-4 md:p-6 max-w-6xl w-full mx-auto space-y-6">
+    
+    <!-- THANH TÌM KIẾM NHANH -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-sky-100 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <input id="searchInput" type="text" oninput="onSearchInput()" placeholder="🔍 Tìm tên hoạt động, đơn vị CLB, MSSV, họ tên hoặc lớp..."
+             class="w-full md:flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium outline-none focus:ring-2 focus:ring-sky-500 select-text">
+      <div id="statBadge" class="text-xs font-bold text-sky-800 bg-sky-50 px-3.5 py-2 rounded-xl border border-sky-200 shrink-0">
+        ⏳ Đang nạp dữ liệu...
+      </div>
+    </div>
+
+    <!-- 2 FOLDER VUÔNG LỚN -->
+    <div id="folderGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+
+    <!-- KHU VỰC HIỂN THỊ NỘI DUNG BÊN TRONG FOLDER ĐANG CHỌN -->
+    <div id="activeFolderContent" class="space-y-4"></div>
+
+  </main>
+
+  <!-- MÀN HÌNH 2: TRÌNH XEM FILE EXCEL RIÊNG BIỆT -->
+  <section id="excelViewerScreen" class="hidden flex-grow p-3 md:p-6 max-w-7xl w-full mx-auto flex flex-col space-y-3">
+    <div class="bg-white rounded-2xl border border-slate-300 shadow-md overflow-hidden flex flex-col flex-grow">
+      
+      <div class="bg-[#107c41] text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button type="button" onclick="closeExcelSheet()" class="bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-1 rounded-lg text-xs transition shrink-0">
+            &larr; Quay lại danh mục
+          </button>
+          <span class="bg-white text-[#107c41] font-extrabold text-[11px] px-2 py-0.5 rounded shrink-0">XLSX • READ-ONLY</span>
+          <span id="excelFileName" class="font-bold text-xs md:text-sm truncate">DanhSach.xlsx</span>
+        </div>
+        <button type="button" onclick="copyDirectActivityLink()" id="btnCopyShareLink" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold px-3 py-1 rounded-lg text-xs transition shrink-0">
+          🔗 Sao chép link danh sách này
+        </button>
+      </div>
+
+      <div class="bg-slate-50 border-b border-slate-300 px-3 py-2 flex flex-col md:flex-row items-stretch md:items-center gap-2 text-xs">
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <span class="bg-white border border-slate-300 px-2.5 py-1 rounded font-mono-code font-bold text-slate-600 text-[11px] shrink-0">A1:F<span id="excelTotalRows">1</span></span>
+          <span class="text-[#107c41] font-extrabold italic font-serif text-sm shrink-0">fx</span>
+          <div id="excelFormulaText" class="bg-white border border-slate-300 px-3 py-1 rounded text-slate-700 font-semibold truncate flex-1">--</div>
+        </div>
+        <input id="sheetSearchInput" type="text" oninput="renderExcelRows()" placeholder="🔎 Lọc nhanh MSSV / Tên / Lớp trong bảng này..."
+               class="bg-white border border-slate-300 rounded-lg px-3 py-1 text-xs outline-none focus:ring-2 focus:ring-emerald-500 md:w-72 select-text">
+      </div>
+
+      <div class="relative flex-grow overflow-auto max-h-[68vh] bg-white">
+        <div id="watermarkOverlay" class="pointer-events-none fixed inset-0 z-30 opacity-[0.055] flex flex-wrap items-center justify-center gap-16 overflow-hidden rotate-[-22deg] scale-125"></div>
+        <table class="excel-grid relative z-10">
+          <thead class="sticky top-0 z-20">
+            <tr>
+              <th class="excel-col-letter"></th>
+              <th class="excel-col-letter w-16">A</th>
+              <th class="excel-col-letter w-32">B</th>
+              <th class="excel-col-letter">C</th>
+              <th class="excel-col-letter w-28">D</th>
+              <th class="excel-col-letter">E</th>
+              <th class="excel-col-letter w-36">F</th>
+            </tr>
+            <tr class="excel-header-row">
+              <th class="excel-row-num">1</th>
+              <th class="text-center">STT</th>
+              <th>MSSV</th>
+              <th>Họ và tên sinh viên</th>
+              <th>Lớp</th>
+              <th>Trường / Khoa</th>
+              <th>Vai trò</th>
+            </tr>
+          </thead>
+          <tbody id="excelTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="bg-slate-100 border-t border-slate-300 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600">
+        <div class="flex items-center gap-2">
+          <span class="bg-white border-b-2 border-[#107c41] text-[#107c41] font-extrabold px-3 py-1 rounded-t">📑 DanhSach_ChinhThuc</span>
+          <span id="excelMetaSummary" class="font-medium text-slate-600">--</span>
+        </div>
+        <div id="antiFakeStamp" class="font-mono-code font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded">
+          🛡️ XÁC THỰC TRỰC TUYẾN
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    // DÁN ĐƯỜNG LINK WEB APP /exec CỦA DỰ ÁN TraCuuHoatDong_TongHop VÀO ĐÂY:
+    const TREE_API_URL = "https://script.google.com/macros/s/AKfycbz0nLTQh8v-0rt8F0b9-Y4HgmE5ooRtSERSD5ns_6sYAXOCAAPsXutcHFBK1KhfHnCe/exec";
+
+    let rawSources = [];
+    let filteredSources = [];
+    let selectedSourceIdx = null; // null = chưa mở folder nào, 0 = Đoàn-Hội, 1 = CLB
+    let openSemesters = {};
+    let activeSheetData = null;
+    let activeDirectCode = "";
+    let urlHkFilter = "";
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && ['s', 'p', 'u', 'c', 'a'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+      }
+    });
+
+    function norm(s) {
+      return (s || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    function buildWatermark() {
+      const wm = document.getElementById('watermarkOverlay');
+      if (!wm) return;
+      const nowStr = new Date().toLocaleString('vi-VN');
+      let items = "";
+      for (let i = 0; i < 24; i++) {
+        items += `<div class="text-slate-900 font-extrabold text-base whitespace-nowrap">ĐOÀN THANH NIÊN - HỘI SINH VIÊN ĐHYD TP.HCM • ${nowStr}</div>`;
+      }
+      wm.innerHTML = items;
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      buildWatermark();
+
+      // Đọc đuôi link ?hk=26-27.HK1 (hoặc ?hocky=...)
+      const params = new URLSearchParams(window.location.search);
+      urlHkFilter = (params.get('hk') || params.get('hocky') || "").trim();
+      if (urlHkFilter) {
+        const tag = document.getElementById('hkFilterTag');
+        tag.textContent = `📌 Học kỳ: ${urlHkFilter}`;
+        tag.classList.remove('hidden');
+      }
+
+      // Đọc bộ nhớ đệm trình duyệt (5 phút) để giảm tải tối đa cho Server
+      const localCacheKey = "UMP_TREE_LOCAL_CACHE_V1";
+      const localCacheTimeKey = "UMP_TREE_LOCAL_TIME_V1";
+      const savedJson = localStorage.getItem(localCacheKey);
+      const savedTime = parseInt(localStorage.getItem(localCacheTimeKey) || "0", 10);
+
+      if (savedJson && (Date.now() - savedTime < 5 * 60 * 1000)) {
+        try {
+          const parsed = JSON.parse(savedJson);
+          if (parsed && parsed.success) {
+            applyLoadedData(parsed.sources || []);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      try {
+        const res = await fetch(TREE_API_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "getTree" })
+        }).then(r => r.json());
+
+        if (res && res.success) {
+          try {
+            localStorage.setItem(localCacheKey, JSON.stringify(res));
+            localStorage.setItem(localCacheTimeKey, Date.now().toString());
+          } catch (e) {}
+          applyLoadedData(res.sources || []);
+        } else {
+          document.getElementById('statBadge').textContent = "❌ " + (res.error || "Lỗi tải dữ liệu");
+        }
+      } catch (err) {
+        document.getElementById('statBadge').textContent = "❌ Lỗi kết nối máy chủ";
+      }
+    });
+
+    function applyLoadedData(sources) {
+      rawSources = sources;
+
+      // Lọc theo đuôi link ?hk=... nếu có
+      if (urlHkFilter) {
+        const hkNorm = norm(urlHkFilter);
+        filteredSources = rawSources.map(src => ({
+          ...src,
+          semesters: (src.semesters || []).filter(sem => norm(sem.hocKy).includes(hkNorm))
+        }));
+      } else {
+        filteredSources = rawSources;
+      }
+
+      // Mặc định mở sẵn học kỳ đầu tiên bên trong mỗi folder
+      filteredSources.forEach((src, sIdx) => {
+        if (src.semesters && src.semesters.length > 0) {
+          openSemesters[`hk_${sIdx}_0`] = true;
+        }
+      });
+
+      renderFoldersAndContent();
+      checkHashRoute();
+    }
+
+    window.addEventListener('hashchange', checkHashRoute);
+
+    function checkHashRoute() {
+      const hash = window.location.hash || "";
+      const m = hash.match(/^#file=(\d+)_(\d+)_(\d+)$/);
+      if (m) {
+        openExcelSheet(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
+      } else {
+        document.getElementById('excelViewerScreen').classList.add('hidden');
+        document.getElementById('treeViewScreen').classList.remove('hidden');
+      }
+    }
+
+    function selectMainFolder(sIdx) {
+      selectedSourceIdx = (selectedSourceIdx === sIdx) ? null : sIdx;
+      renderFoldersAndContent();
+    }
+
+    function toggleSemester(key) {
+      openSemesters[key] = !openSemesters[key];
+      renderFoldersAndContent();
+    }
+
+    function onSearchInput() {
+      const q = norm(document.getElementById('searchInput').value);
+      if (q && selectedSourceIdx === null) {
+        selectedSourceIdx = 0; // Tự mở folder đầu tiên khi bắt đầu gõ tìm kiếm
+      }
+      renderFoldersAndContent();
+    }
+
+    function renderFoldersAndContent() {
+      const q = norm(document.getElementById('searchInput').value);
+      const folderGrid = document.getElementById('folderGrid');
+      const contentBox = document.getElementById('activeFolderContent');
+
+      let totalAllActs = 0;
+      let foldersHtml = "";
+
+      filteredSources.forEach((src, sIdx) => {
+        let countActs = 0;
+        (src.semesters || []).forEach(sem => {
+          sem.activities.forEach(act => {
+            const matchAct = !q || norm(act.ten).includes(q) || norm(act.donVi).includes(q) || norm(act.mucDrl).includes(q);
+            const hasSv = matchAct || act.sinhVien.some(sv => norm(sv.mssv).includes(q) || norm(sv.hoTen).includes(q) || norm(sv.lop).includes(q));
+            if (hasSv) countActs++;
+          });
+        });
+        totalAllActs += countActs;
+
+        const isSelected = selectedSourceIdx === sIdx;
+        const isFirst = sIdx === 0;
+
+        foldersHtml += `
+          <div onclick="selectMainFolder(${sIdx})"
+               class="folder-square-card cursor-pointer rounded-3xl p-6 border-2 flex flex-col justify-between min-h-[175px]
+                      ${isSelected
+                        ? (isFirst ? 'bg-sky-600 text-white border-sky-700 shadow-lg' : 'bg-indigo-600 text-white border-indigo-700 shadow-lg')
+                        : 'bg-white text-slate-800 border-sky-100 hover:border-sky-300 shadow-sm'}">
+            
+            <div class="flex items-start justify-between gap-3">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0
+                          ${isSelected ? 'bg-white/20' : (isFirst ? 'bg-sky-100 text-sky-600' : 'bg-indigo-100 text-indigo-600')}">
+                ${isSelected ? '📂' : '📁'}
+              </div>
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full
+                           ${isSelected ? 'bg-white text-slate-900' : (isFirst ? 'bg-sky-100 text-sky-800' : 'bg-indigo-100 text-indigo-800')}">
+                ${countActs} danh sách ${isSelected ? '▾' : '▸'}
+              </span>
+            </div>
+
+            <div class="mt-4 space-y-1">
+              <h2 class="font-extrabold text-base md:text-lg leading-snug tracking-tight">
+                ${src.title}
+              </h2>
+              <p class="text-xs ${isSelected ? 'text-white/85' : 'text-slate-500'} line-clamp-2">
+                ${src.subtitle || ''}
+              </p>
+            </div>
+          </div>
+        `;
+      });
+
+      folderGrid.innerHTML = foldersHtml;
+      document.getElementById('statBadge').textContent = `📗 Tổng cộng: ${totalAllActs} danh sách`;
+
+      // Hiển thị nội dung của Folder đang được bấm chọn
+      if (selectedSourceIdx === null || !filteredSources[selectedSourceIdx]) {
+        contentBox.innerHTML = `
+          <div class="bg-white/80 border border-dashed border-sky-200 rounded-2xl p-8 text-center text-xs text-slate-500">
+            👆 Bấm chọn một trong hai thư mục phía trên để mở danh sách hoạt động theo học kỳ
+          </div>`;
+        return;
+      }
+
+      const activeSrc = filteredSources[selectedSourceIdx];
+      let semHtml = "";
+
+      (activeSrc.semesters || []).forEach((sem, hkIdx) => {
+        const hkKey = `hk_${selectedSourceIdx}_${hkIdx}`;
+        const matchedActs = [];
+
+        sem.activities.forEach((act, aIdx) => {
+          const matchAct = !q || norm(act.ten).includes(q) || norm(act.donVi).includes(q) || norm(act.mucDrl).includes(q);
+          const svFiltered = matchAct
+            ? act.sinhVien
+            : act.sinhVien.filter(sv => norm(sv.mssv).includes(q) || norm(sv.hoTen).includes(q) || norm(sv.lop).includes(q));
+          if (svFiltered.length > 0) matchedActs.push({ act, aIdx });
+        });
+
+        if (matchedActs.length === 0) return;
+        const isHkOpen = (q || urlHkFilter) ? true : !!openSemesters[hkKey];
+
+        semHtml += `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <button type="button" onclick="toggleSemester('${hkKey}')"
+                    class="w-full px-5 py-3.5 bg-slate-50 hover:bg-sky-50/70 flex items-center justify-between text-left transition">
+              <div class="font-extrabold text-sky-950 text-xs md:text-sm flex items-center gap-2.5">
+                <span class="text-lg">${isHkOpen ? '📂' : '📁'}</span>
+                <span>Học kỳ ${sem.hocKy}</span>
+              </div>
+              <span class="text-xs font-bold bg-sky-100 text-sky-800 px-3 py-0.5 rounded-full">
+                ${matchedActs.length} hoạt động ${isHkOpen ? '▾' : '▸'}
+              </span>
+            </button>
+        `;
+
+        if (isHkOpen) {
+          semHtml += `<div class="p-3.5 md:p-4 space-y-2.5 border-t border-slate-100">`;
+          matchedActs.forEach(({ act, aIdx }) => {
+            semHtml += `
+              <div onclick="openExcelSheet(${selectedSourceIdx}, ${hkIdx}, ${aIdx})"
+                   class="group rounded-xl border border-slate-200 hover:border-emerald-400 bg-white hover:bg-emerald-50/30 px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2.5 cursor-pointer transition">
+                <div class="space-y-1 min-w-0">
+                  <div class="font-bold text-slate-800 group-hover:text-emerald-800 text-xs md:text-sm flex items-start gap-2">
+                    <span class="text-emerald-600 shrink-0 text-base leading-none">📗</span>
+                    <span class="leading-snug">${act.ten}</span>
+                  </div>
+                  <div class="text-[11px] text-slate-500 pl-6 flex flex-wrap gap-x-3 gap-y-0.5">
+                    ${act.donVi ? `<span>🏛️ Đơn vị: <b class="text-indigo-700">${act.donVi}</b></span>` : ''}
+                    <span>🎯 Mục ĐRL: <b>${act.mucDrl}</b></span>
+                    <span>📅 Ngày: <b>${act.ngay}</b></span>
+                  </div>
+                </div>
+                <span class="self-end md:self-center text-[11px] font-extrabold bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white border border-emerald-200 px-3 py-1.5 rounded-xl transition shrink-0">
+                  📊 Mở danh sách (${act.sinhVien.length} SV) ↗
+                </span>
+              </div>
+            `;
+          });
+          semHtml += `</div>`;
+        }
+
+        semHtml += `</div>`;
+      });
+
+      contentBox.innerHTML = semHtml || `
+        <div class="bg-white rounded-2xl p-8 text-center text-xs text-slate-400 border border-slate-200">
+          Không có hoạt động nào trong thư mục này khớp điều kiện lọc.
+        </div>`;
+    }
+
+    function openExcelSheet(sIdx, hkIdx, aIdx) {
+      const src = filteredSources[sIdx];
+      const sem = src && src.semesters ? src.semesters[hkIdx] : null;
+      const act = sem && sem.activities ? sem.activities[aIdx] : null;
+      if (!act) return;
+
+      activeSheetData = { src, sem, act };
+      activeDirectCode = `${sIdx}_${hkIdx}_${aIdx}`;
+      window.location.hash = `file=${activeDirectCode}`;
+
+      document.getElementById('treeViewScreen').classList.add('hidden');
+      document.getElementById('excelViewerScreen').classList.remove('hidden');
+
+      document.getElementById('excelFileName').textContent = `[${sem.hocKy}] ${act.ten}.xlsx`;
+      document.getElementById('excelFormulaText').textContent = `${act.ten} | Mục ĐRL: ${act.mucDrl} | Thời gian: ${act.ngay}${act.donVi ? ' | Đơn vị: ' + act.donVi : ''}`;
+      document.getElementById('excelMetaSummary').textContent = `${src.title} • Học kỳ: ${sem.hocKy} • Tổng số: ${act.sinhVien.length} sinh viên`;
+
+      const verifyToken = btoa(unescape(encodeURIComponent(`${sem.hocKy}|${act.sinhVien.length}`))).slice(0, 12).toUpperCase();
+      document.getElementById('antiFakeStamp').textContent = `🛡️ MÃ XÁC THỰC: UMP-${verifyToken} • CHỈ XEM TRỰC TUYẾN`;
+
+      document.getElementById('sheetSearchInput').value = document.getElementById('searchInput').value || "";
+      renderExcelRows();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderExcelRows() {
+      if (!activeSheetData) return;
+      const q = norm(document.getElementById('sheetSearchInput').value);
+      const list = activeSheetData.act.sinhVien.filter(sv =>
+        !q || norm(sv.mssv).includes(q) || norm(sv.hoTen).includes(q) || norm(sv.lop).includes(q) || norm(sv.khoa).includes(q) || norm(sv.vaiTro).includes(q)
+      );
+
+      document.getElementById('excelTotalRows').textContent = list.length + 1;
+      const tbody = document.getElementById('excelTableBody');
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400 italic">Không có sinh viên nào khớp từ khóa lọc.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((sv, idx) => `
+        <tr>
+          <td class="excel-row-num">${idx + 2}</td>
+          <td class="text-center text-slate-500 font-medium">${idx + 1}</td>
+          <td class="font-mono-code font-bold text-slate-800">${sv.mssv}</td>
+          <td class="font-semibold text-slate-900">${sv.hoTen}</td>
+          <td class="text-slate-700">${sv.lop}</td>
+          <td class="text-slate-700">${sv.khoa}</td>
+          <td>
+            <span class="inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded text-[11px]">
+              ${sv.vaiTro}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function closeExcelSheet() {
+      activeSheetData = null;
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+      document.getElementById('excelViewerScreen').classList.add('hidden');
+      document.getElementById('treeViewScreen').classList.remove('hidden');
+    }
+
+    function copyDirectActivityLink() {
+      const shareUrl = `${window.location.origin}${window.location.pathname}${window.location.search}#file=${activeDirectCode}`;
+      const tempInput = document.createElement('input');
+      tempInput.value = shareUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+
+      const btn = document.getElementById('btnCopyShareLink');
+      const oldText = btn.textContent;
+      btn.textContent = "✅ Đã chép link mở thẳng danh sách này!";
+      setTimeout(() => { btn.textContent = oldText; }, 2200);
+    }
+  </script>
+</body>
+</html>
